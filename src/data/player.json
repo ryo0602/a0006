@@ -1,0 +1,9 @@
+{
+  "maxHp": 100,
+  "moveSpeed": 200,
+  "hitRadius": 12,
+  "pickupRadius": 60,
+  "invincibleSec": 0.5,
+  "flashSec": 0.1,
+  "regenPerSec": 0
+}

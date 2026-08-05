@@ -1,0 +1,45 @@
+{
+  "gatling": {
+    "name": "ガトリング",
+    "base": "shot",
+    "requiredPassive": "haste",
+    "requiredPassiveLevel": 3,
+    "stats": { "damage": 18, "cooldownSec": 0.15, "count": 1, "speed": 550, "radius": 6, "lifeSec": 1.6 }
+  },
+  "satellite": {
+    "name": "サテライト",
+    "base": "orb",
+    "requiredPassive": "boots",
+    "requiredPassiveLevel": 3,
+    "stats": {
+      "damage": 25,
+      "count": 6,
+      "orbitRadiusInner": 80,
+      "orbitRadiusOuter": 130,
+      "rotSpeedRad": 3.0,
+      "hitIntervalSec": 0.5,
+      "radius": 12
+    }
+  },
+  "boomerang": {
+    "name": "ブーメラン",
+    "base": "shuriken",
+    "requiredPassive": "power",
+    "requiredPassiveLevel": 3,
+    "stats": { "damage": 40, "cooldownSec": 1.2, "count": 2, "speed": 480, "radius": 14, "outSec": 0.55 }
+  },
+  "storm": {
+    "name": "ストーム",
+    "base": "thunder",
+    "requiredPassive": "power",
+    "requiredPassiveLevel": 3,
+    "stats": { "damage": 45, "cooldownSec": 0.4, "strikes": 3, "blastRadius": 80 }
+  },
+  "inferno": {
+    "name": "インフェルノ",
+    "base": "flame",
+    "requiredPassive": "vitality",
+    "requiredPassiveLevel": 3,
+    "stats": { "damagePerTick": 12, "tickSec": 0.2, "range": 200, "lifestealRatio": 0.05 }
+  }
+}

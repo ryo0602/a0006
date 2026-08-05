@@ -1,0 +1,15 @@
+Input prompt icons: "Input Prompts Pixel" by Kenney (kenney.nl)
+License: CC0 (Creative Commons Zero)
+https://kenney.nl/assets/input-prompts-pixel
+
+Character sprites: "Toon Characters" by Kenney (kenney.nl)
+License: CC0 (Creative Commons Zero)
+https://kenney.nl/assets/toon-characters-1
+
+Stage background tiles: "RPG Urban Pack" by Kenney (kenney.nl)
+License: CC0 (Creative Commons Zero)
+https://kenney.nl/assets/rpg-urban-pack
+
+UI panels: "Pixel UI Pack" by Kenney (kenney.nl)
+License: CC0 (Creative Commons Zero)
+https://kenney.nl/assets/pixel-ui-pack

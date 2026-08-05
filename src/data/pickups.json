@@ -1,0 +1,6 @@
+{
+  "dropChance": 0.01,
+  "collectRadius": 16,
+  "heal": { "healRatio": 0.3 },
+  "bomb": { "damage": 200 }
+}

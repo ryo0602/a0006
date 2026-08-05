@@ -1,0 +1,17 @@
+{
+  "power": { "name": "パワー", "maxLevel": 5, "damageAddPerLevel": 0.1 },
+  "haste": {
+    "name": "ヘイスト",
+    "maxLevel": 5,
+    "cooldownCutPerLevel": 0.08,
+    "cooldownCutCap": 0.5
+  },
+  "boots": { "name": "ブーツ", "maxLevel": 5, "moveSpeedAddPerLevel": 0.08 },
+  "magnet": { "name": "マグネット", "maxLevel": 5, "pickupRangeAddPerLevel": 0.25 },
+  "vitality": {
+    "name": "バイタリティ",
+    "maxLevel": 5,
+    "maxHpAddPerLevel": 0.15,
+    "regenAddPerLevel": 0.3
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "gemExp": { "gem_small": 3, "gem_medium": 12, "gem_large": 50 },
+  "expBase": 10,
+  "expPerLevel": 5,
+  "expStepEvery5": 10,
+  "rerollsPerRun": 3,
+  "healRatio": 0.2,
+  "coinKillDivisor": 20,
+  "coinPerMinute": 10,
+  "coinClearMultiplier": 1.5,
+  "gemAttractAccel": 1600,
+  "gemBaseSpeed": 60,
+  "gemCollectRadius": 18
+}

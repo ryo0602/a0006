@@ -1,0 +1,178 @@
+{
+  "difficulty": {
+    "hpPerMin": 0.18,
+    "damagePerMin": 0.06
+  },
+  "stages": [
+    {
+      "id": "stage1",
+      "name": "市街地",
+      "durationSec": 900,
+      "bossAtSec": 840,
+      "afterBossPerSec": 4,
+      "difficultyMul": 1.0,
+      "waves": [
+        {
+          "untilSec": 120,
+          "perSec": 2,
+          "mix": {
+            "walker": 1.0
+          }
+        },
+        {
+          "untilSec": 300,
+          "perSec": 4,
+          "mix": {
+            "walker": 0.7,
+            "runner_z": 0.3
+          }
+        },
+        {
+          "untilSec": 480,
+          "perSec": 6,
+          "mix": {
+            "walker": 0.5,
+            "runner_z": 0.3,
+            "tank_z": 0.2
+          }
+        },
+        {
+          "untilSec": 660,
+          "perSec": 8,
+          "mix": {
+            "walker": 0.4,
+            "runner_z": 0.3,
+            "tank_z": 0.2,
+            "spitter": 0.1
+          }
+        },
+        {
+          "untilSec": 840,
+          "perSec": 11,
+          "mix": {
+            "walker": 0.3,
+            "runner_z": 0.3,
+            "tank_z": 0.25,
+            "spitter": 0.15
+          }
+        }
+      ],
+      "coinMultiplier": 1.0
+    },
+    {
+      "id": "stage2",
+      "name": "廃工場",
+      "durationSec": 900,
+      "bossAtSec": 840,
+      "afterBossPerSec": 4,
+      "difficultyMul": 1.4,
+      "waves": [
+        {
+          "untilSec": 120,
+          "perSec": 2,
+          "mix": {
+            "walker": 0.8,
+            "tank_z": 0.2
+          }
+        },
+        {
+          "untilSec": 300,
+          "perSec": 4,
+          "mix": {
+            "walker": 0.5,
+            "runner_z": 0.2,
+            "tank_z": 0.3
+          }
+        },
+        {
+          "untilSec": 480,
+          "perSec": 6,
+          "mix": {
+            "walker": 0.35,
+            "runner_z": 0.25,
+            "tank_z": 0.4
+          }
+        },
+        {
+          "untilSec": 660,
+          "perSec": 8,
+          "mix": {
+            "walker": 0.3,
+            "runner_z": 0.2,
+            "tank_z": 0.4,
+            "spitter": 0.1
+          }
+        },
+        {
+          "untilSec": 840,
+          "perSec": 11,
+          "mix": {
+            "walker": 0.2,
+            "runner_z": 0.25,
+            "tank_z": 0.4,
+            "spitter": 0.15
+          }
+        }
+      ],
+      "coinMultiplier": 1.6
+    },
+    {
+      "id": "stage3",
+      "name": "汚染区",
+      "durationSec": 900,
+      "bossAtSec": 840,
+      "afterBossPerSec": 5.2,
+      "difficultyMul": 1.9,
+      "waves": [
+        {
+          "untilSec": 120,
+          "perSec": 2.6,
+          "mix": {
+            "walker": 0.9,
+            "spitter": 0.1
+          }
+        },
+        {
+          "untilSec": 300,
+          "perSec": 5.2,
+          "mix": {
+            "walker": 0.55,
+            "runner_z": 0.25,
+            "spitter": 0.2
+          }
+        },
+        {
+          "untilSec": 480,
+          "perSec": 7.8,
+          "mix": {
+            "walker": 0.4,
+            "runner_z": 0.25,
+            "tank_z": 0.1,
+            "spitter": 0.25
+          }
+        },
+        {
+          "untilSec": 660,
+          "perSec": 10.4,
+          "mix": {
+            "walker": 0.3,
+            "runner_z": 0.25,
+            "tank_z": 0.15,
+            "spitter": 0.3
+          }
+        },
+        {
+          "untilSec": 840,
+          "perSec": 14.3,
+          "mix": {
+            "walker": 0.25,
+            "runner_z": 0.25,
+            "tank_z": 0.15,
+            "spitter": 0.35
+          }
+        }
+      ],
+      "coinMultiplier": 2.4
+    }
+  ]
+}

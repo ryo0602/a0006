@@ -1,0 +1,44 @@
+{
+  "meta_hp": {
+    "name": "最大HP",
+    "stat": "maxHp",
+    "addPerLevel": 0.05,
+    "maxLevel": 10,
+    "baseCost": 50
+  },
+  "meta_power": {
+    "name": "ダメージ",
+    "stat": "damage",
+    "addPerLevel": 0.04,
+    "maxLevel": 10,
+    "baseCost": 60
+  },
+  "meta_speed": {
+    "name": "移動速度",
+    "stat": "moveSpeed",
+    "addPerLevel": 0.03,
+    "maxLevel": 5,
+    "baseCost": 70
+  },
+  "meta_regen": {
+    "name": "HP自動回復",
+    "stat": "regen",
+    "addPerLevel": 0.2,
+    "maxLevel": 5,
+    "baseCost": 80
+  },
+  "meta_start": {
+    "name": "開始レベル",
+    "stat": "startLevel",
+    "addPerLevel": 1,
+    "maxLevel": 3,
+    "baseCost": 200
+  },
+  "meta_reroll": {
+    "name": "リロール回数",
+    "stat": "reroll",
+    "addPerLevel": 1,
+    "maxLevel": 3,
+    "baseCost": 150
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "walker": {
+    "name": "歩行者",
+    "hp": 16,
+    "speed": 60,
+    "contactDamage": 8,
+    "radius": 12,
+    "drop": "gem_small"
+  },
+  "runner_z": {
+    "name": "走者",
+    "hp": 12,
+    "speed": 130,
+    "contactDamage": 6,
+    "radius": 10,
+    "drop": "gem_small"
+  },
+  "tank_z": {
+    "name": "重装",
+    "hp": 120,
+    "speed": 40,
+    "contactDamage": 18,
+    "radius": 20,
+    "drop": "gem_medium"
+  },
+  "spitter": {
+    "name": "遠距離",
+    "hp": 30,
+    "speed": 50,
+    "contactDamage": 0,
+    "projectileDamage": 12,
+    "projectileSpeed": 240,
+    "projectileRadius": 6,
+    "fireCooldownSec": 2.0,
+    "keepDistance": 250,
+    "radius": 12,
+    "drop": "gem_medium"
+  },
+  "boss": {
+    "name": "ボス",
+    "hp": 3000,
+    "speed": 55,
+    "contactDamage": 30,
+    "radius": 48,
+    "drop": "gem_large",
+    "dropCount": 10
+  }
+}

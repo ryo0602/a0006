@@ -1,0 +1,23 @@
+{
+  "runner": {
+    "name": "ランナー",
+    "weapon": "shot",
+    "moveSpeedAdd": 0.15,
+    "maxHpAdd": -0.1,
+    "unlock": { "type": "start" }
+  },
+  "tank": {
+    "name": "ヘヴィ",
+    "weapon": "orb",
+    "maxHpAdd": 0.3,
+    "moveSpeedAdd": -0.1,
+    "unlock": { "type": "clearStage", "stage": "stage1" }
+  },
+  "sniper": {
+    "name": "スナイパー",
+    "weapon": "shuriken",
+    "damageAdd": 0.15,
+    "pickupRangeAdd": -0.2,
+    "unlock": { "type": "coins", "cost": 500 }
+  }
+}
