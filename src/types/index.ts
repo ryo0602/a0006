@@ -103,6 +103,34 @@ export interface FlameLevel {
   arcDeg: number;
 }
 
+/** スピア（Phase 8）。向いている方向への刺突。ShurikenLevel と同形 */
+export type SpearLevel = ShurikenLevel;
+
+export interface AxeLevel {
+  damage: number;
+  cooldownSec: number;
+  count: number;
+  pierce: number;
+  upSpeed: number;
+  sideSpeed: number;
+  gravity: number;
+  radius: number;
+  lifeSec: number;
+}
+
+export interface MineLevel {
+  damage: number;
+  cooldownSec: number;
+  /** 同時設置数（§8: この武器の「弾数」に相当） */
+  count: number;
+  triggerRadius: number;
+  blastRadius: number;
+  armSec: number;
+  lifeSec: number;
+}
+
+export type DroneLevel = ShotLevel;
+
 /** パッシブ定義（src/data/passives.json。§9）。効果値は種類ごとに任意 */
 export interface PassiveDef {
   name: string;
@@ -114,6 +142,11 @@ export interface PassiveDef {
   pickupRangeAddPerLevel?: number;
   maxHpAddPerLevel?: number;
   regenAddPerLevel?: number;
+  critChancePerLevel?: number;
+  areaAddPerLevel?: number;
+  /** シールド（Phase 8）: チャージ間隔 = base - cut × Lv */
+  shieldIntervalBase?: number;
+  shieldIntervalCutPerLevel?: number;
 }
 
 /** パッシブ合算後の補正値。パッシブ取得時にのみ再計算する（毎フレーム計算しない） */
@@ -124,6 +157,12 @@ export interface Modifiers {
   pickupRangeMul: number;
   maxHpMul: number;
   regenPerSec: number;
+  /** クリティカル率（Phase 8）。applyDamage の一元窓口で判定する */
+  critChance: number;
+  /** 攻撃範囲倍率（Phase 8）。各武器が半径・射程に乗算する */
+  areaMul: number;
+  /** シールドのチャージ間隔秒（Phase 8）。0 はシールドなし */
+  shieldIntervalSec: number;
 }
 
 /** レベルアップ3択の1候補（§13 / §10） */
@@ -203,9 +242,26 @@ export interface CharacterDef {
   maxHpAdd?: number;
   damageAdd?: number;
   pickupRangeAdd?: number;
+  /** Phase 9: 特性軸の拡張（§7。Modifiers に既にある軸のみ使う方針） */
+  critChanceAdd?: number;
+  areaAdd?: number;
+  shieldIntervalSec?: number;
+  /** シールドを開始時にチャージ済みで持つ（paladin。§7 唯一の bool 特性） */
+  shieldStart?: boolean;
   /** 解放条件。type: 'start' | 'clearStage' | 'coins'
    *  （JSON import は文字列リテラルを widening するため union にしない） */
   unlock: { type: string; stage?: string; cost?: number };
+}
+
+/** 危険度テーブル（stages.json の danger。§12 Phase 9）。危険度0 = 現行バランス */
+export interface DangerDef {
+  maxLevel: number;
+  hpMulPerLevel: number;
+  damageMulPerLevel: number;
+  /** エリート敵（tank_z / spitter）の抽選重み倍率。レートは上げず質で上げる */
+  eliteWeightPerLevel: number;
+  coinMulPerLevel: number;
+  eliteTypes: string[];
 }
 
 /** メタ強化定義（src/data/metaUpgrades.json の形。§14）。
@@ -235,6 +291,10 @@ export interface SaveData {
   stats: SaveStats;
   /** 前回選択キャラ（§14 承認済みの追加フィールド） */
   lastCharacter: string;
+  /** 解放済みの最大危険度（§12 Phase 9。0〜maxLevel） */
+  dangerUnlocked: number;
+  /** 前回選択した危険度 */
+  lastDanger: number;
 }
 
 /** プレイ開始時の構成（キャラ特性 × メタ強化を合成済み。パッシブは含まない） */
@@ -246,6 +306,14 @@ export interface RunSetup {
   base: Modifiers;
   startLevel: number;
   extraRerolls: number;
+  /** EXP獲得倍率（§14 meta_exp）。パッシブに対応枠がないためここに持つ */
+  expGainMul: number;
+  /** 解放済み武器ID（§8 Phase 8: 新武器はステージクリアで解放されるまで候補に出ない） */
+  unlockedWeapons: string[];
+  /** 選択中の危険度（§12 Phase 9）。係数の算出は stages.json の danger テーブルから行う */
+  dangerLevel: number;
+  /** シールドを開始時にチャージ済みで持つ（paladin。§7 Phase 9） */
+  shieldStart: boolean;
 }
 
 /**

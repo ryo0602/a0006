@@ -10,8 +10,10 @@ export class LevelSystem {
   exp = 0;
   /** モーダル未消化のレベルアップ数 */
   pendingLevels = 0;
-  /** 残りリロール回数（§13: 1プレイにつき3回。meta_reroll 加算は Phase 5） */
+  /** 残りリロール回数（§13: 1プレイにつき3回 + meta_reroll） */
   rerolls = levelingData.rerollsPerRun;
+  /** EXP獲得倍率（§14 meta_exp。1 + 0.1×Lv） */
+  expMul = 1;
 
   requiredExp(level: number): number {
     return (
@@ -22,7 +24,7 @@ export class LevelSystem {
   }
 
   addExp(amount: number): void {
-    this.exp += amount;
+    this.exp += amount * this.expMul;
     while (this.exp >= this.requiredExp(this.level)) {
       this.exp -= this.requiredExp(this.level);
       this.level++;
@@ -38,12 +40,13 @@ export class LevelSystem {
   /**
    * startLevel: 1 + meta_start（§14）。開始分の選択はモーダルで行うため
    * pendingLevels に積む（プレイ開始直後に連続表示される）。
-   * extraRerolls: meta_reroll の加算分。
+   * extraRerolls: meta_reroll の加算分。expMul: meta_exp の倍率。
    */
-  reset(startLevel = 1, extraRerolls = 0): void {
+  reset(startLevel = 1, extraRerolls = 0, expMul = 1): void {
     this.level = startLevel;
     this.exp = 0;
     this.pendingLevels = Math.max(0, startLevel - 1);
     this.rerolls = levelingData.rerollsPerRun + extraRerolls;
+    this.expMul = expMul;
   }
 }

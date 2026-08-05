@@ -1,17 +1,45 @@
 {
-  "power": { "name": "パワー", "maxLevel": 5, "damageAddPerLevel": 0.1 },
+  "power": {
+    "name": "パワー",
+    "maxLevel": 5,
+    "damageAddPerLevel": 0.1
+  },
   "haste": {
     "name": "ヘイスト",
     "maxLevel": 5,
     "cooldownCutPerLevel": 0.08,
     "cooldownCutCap": 0.5
   },
-  "boots": { "name": "ブーツ", "maxLevel": 5, "moveSpeedAddPerLevel": 0.08 },
-  "magnet": { "name": "マグネット", "maxLevel": 5, "pickupRangeAddPerLevel": 0.25 },
+  "boots": {
+    "name": "ブーツ",
+    "maxLevel": 5,
+    "moveSpeedAddPerLevel": 0.08
+  },
+  "magnet": {
+    "name": "マグネット",
+    "maxLevel": 5,
+    "pickupRangeAddPerLevel": 0.25
+  },
   "vitality": {
     "name": "バイタリティ",
     "maxLevel": 5,
     "maxHpAddPerLevel": 0.15,
     "regenAddPerLevel": 0.3
+  },
+  "crit": {
+    "name": "クリティカル",
+    "maxLevel": 5,
+    "critChancePerLevel": 0.05
+  },
+  "area": {
+    "name": "エリア",
+    "maxLevel": 5,
+    "areaAddPerLevel": 0.08
+  },
+  "shield": {
+    "name": "シールド",
+    "maxLevel": 5,
+    "shieldIntervalBase": 30,
+    "shieldIntervalCutPerLevel": 4
   }
 }

@@ -16,6 +16,10 @@ export class Projectile {
   y = 0;
   vx = 0;
   vy = 0;
+  /** 縦方向の加速度（投斧の重力。Phase 8）。通常弾は 0 */
+  ay = 0;
+  /** 進行方向に沿った加速度（ランス。Phase 8）。通常弾は 0 */
+  accel = 0;
   radius = 0;
   damage = 0;
   pierceLeft = 0;
@@ -44,6 +48,8 @@ export class Projectile {
     this.y = y;
     this.vx = vx;
     this.vy = vy;
+    this.ay = 0;
+    this.accel = 0;
     this.persistent = false;
     this.noCollide = false;
     this.active = true;

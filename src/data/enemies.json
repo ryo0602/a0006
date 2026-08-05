@@ -38,7 +38,7 @@
   },
   "boss": {
     "name": "ボス",
-    "hp": 3000,
+    "hp": 2600,
     "speed": 55,
     "contactDamage": 30,
     "radius": 48,

@@ -8,6 +8,7 @@ import { ResultScene } from '../scenes/ResultScene';
 import { StageSelectScene, StageSelectView } from '../scenes/StageSelectScene';
 import { TitleScene } from '../scenes/TitleScene';
 import { UpgradeScene, UpgradeView, META_IDS } from '../scenes/UpgradeScene';
+import { WEAPON_IDS } from '../systems/WeaponSystem';
 import { SaveManager } from '../save/SaveManager';
 import { GameLoop } from './GameLoop';
 import { InputManager } from './Input';
@@ -37,6 +38,8 @@ export class Game {
 
   private currentStageIndex = 0;
   private selectedCharacter = this.save.data.lastCharacter;
+  /** 選択中の危険度（§12 Phase 9）。セーブの lastDanger から復元する */
+  private selectedDanger = this.save.data.lastDanger;
 
   constructor(private readonly app: Application) {
     this.loop = new GameLoop(
@@ -69,6 +72,7 @@ export class Game {
         this.scenes.change(this.play);
       },
       onSelectCharacter: (id) => this.onSelectCharacter(id),
+      onChangeDanger: (delta) => this.onChangeDanger(delta),
       onOpenUpgrade: () => this.toUpgrade(),
     });
     this.upgrade = new UpgradeScene({
@@ -110,6 +114,14 @@ export class Game {
     data.stats.totalKills += result.kills;
     data.stats.totalPlaytimeSec += result.timeSec;
     data.stats.bestTimeSec = Math.max(data.stats.bestTimeSec, result.timeSec);
+
+    // 危険度の解放（§12 Phase 9）: 危険度 n でクリアすると n+1 が解放される
+    if (result.cleared) {
+      data.dangerUnlocked = Math.max(
+        data.dangerUnlocked,
+        Math.min(stagesData.danger.maxLevel, this.selectedDanger + 1),
+      );
+    }
 
     if (result.cleared) {
       const stageId = stagesData.stages[this.currentStageIndex].id;
@@ -153,6 +165,20 @@ export class Game {
 
     this.selectedCharacter = id;
     data.lastCharacter = id;
+    this.save.save();
+    this.stageSelect.refresh(this.buildStageSelectView());
+  }
+
+  // ---- 危険度選択（§12 Phase 9） ----
+
+  private onChangeDanger(delta: number): void {
+    const next = Math.min(
+      this.save.data.dangerUnlocked,
+      Math.max(0, this.selectedDanger + delta),
+    );
+    if (next === this.selectedDanger) return;
+    this.selectedDanger = next;
+    this.save.data.lastDanger = next;
     this.save.save();
     this.stageSelect.refresh(this.buildStageSelectView());
   }
@@ -207,6 +233,9 @@ export class Game {
     return {
       unlockedStages: this.unlockedStageCount(),
       coins: data.coins,
+      danger: this.selectedDanger,
+      dangerUnlocked: data.dangerUnlocked,
+      dangerMax: stagesData.danger.maxLevel,
       characters: CHARACTER_IDS.map((id) => {
         const def = CHARACTERS[id];
         return {
@@ -248,11 +277,21 @@ export class Game {
       damageMul: (1 + (char.damageAdd ?? 0)) * (1 + metaAdd('meta_power')),
       cooldownMul: 1,
       moveSpeedMul: (1 + (char.moveSpeedAdd ?? 0)) * (1 + metaAdd('meta_speed')),
-      pickupRangeMul: 1 + (char.pickupRangeAdd ?? 0),
+      pickupRangeMul: (1 + (char.pickupRangeAdd ?? 0)) * (1 + metaAdd('meta_magnet')),
       maxHpMul: (1 + (char.maxHpAdd ?? 0)) * (1 + metaAdd('meta_hp')),
       // 回復は実数値/秒の加算（§14 meta_regen。キャラ特性にはない）
       regenPerSec: metaAdd('meta_regen'),
+      // クリティカル・エリア・シールドはキャラ特性（§7 Phase 9）とパッシブの軸
+      critChance: char.critChanceAdd ?? 0,
+      areaMul: 1 + (char.areaAdd ?? 0),
+      shieldIntervalSec: char.shieldIntervalSec ?? 0,
     };
+
+    // §8 Phase 8: 新武器はステージクリアで解放。未解放はレベルアップ候補に出ない
+    const unlockedWeapons = WEAPON_IDS.filter((id) => {
+      const stageId = (weaponsData as Record<string, { unlockStage?: string }>)[id].unlockStage;
+      return stageId === undefined || this.save.data.clearedStages.includes(stageId);
+    });
 
     return {
       stage,
@@ -261,6 +300,10 @@ export class Game {
       base,
       startLevel: 1 + (meta.meta_start ?? 0),
       extraRerolls: meta.meta_reroll ?? 0,
+      expGainMul: 1 + metaAdd('meta_exp'),
+      unlockedWeapons,
+      dangerLevel: this.selectedDanger,
+      shieldStart: char.shieldStart ?? false,
     };
   }
 }
@@ -272,6 +315,9 @@ function traitText(def: CharacterDef): string {
   if (def.maxHpAdd !== undefined) parts.push(`HP${pct(def.maxHpAdd)}`);
   if (def.damageAdd !== undefined) parts.push(`攻撃${pct(def.damageAdd)}`);
   if (def.pickupRangeAdd !== undefined) parts.push(`取得${pct(def.pickupRangeAdd)}`);
+  if (def.critChanceAdd !== undefined) parts.push(`クリ率${pct(def.critChanceAdd)}`);
+  if (def.areaAdd !== undefined) parts.push(`範囲${pct(def.areaAdd)}`);
+  if (def.shieldIntervalSec !== undefined) parts.push(`シールド持ち`);
   const weaponName = (weaponsData as Record<string, { name: string }>)[def.weapon]?.name ?? def.weapon;
   return `${parts.join(' / ')}\n初期武器: ${weaponName}`;
 }
@@ -281,7 +327,10 @@ function pct(v: number): string {
 }
 
 function lockText(def: CharacterDef): string {
-  if (def.unlock.type === 'clearStage') return 'ステージ1クリアで解放';
-  if (def.unlock.type === 'coins') return `コイン${def.unlock.cost}で解放 (キーで購入)`;
+  if (def.unlock.type === 'clearStage') {
+    const num = def.unlock.stage?.replace('stage', '') ?? '?';
+    return `ステージ${num}クリアで解放`;
+  }
+  if (def.unlock.type === 'coins') return `コイン${def.unlock.cost}で解放 (決定キーで購入)`;
   return '';
 }

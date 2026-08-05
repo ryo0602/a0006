@@ -25,6 +25,11 @@ export class Player {
   maxHpMul = 1;
   regenPerSec = PLAYER_STATS.regenPerSec;
 
+  /** シールド（§9 Phase 8）。0 = 未取得。チャージ完了で被弾1回を無効化する */
+  shieldIntervalSec = 0;
+  shieldChargeTimer = 0;
+  shieldReady = false;
+
   readonly sprite: Sprite;
   /** 表示スケール（キャラ見た目の切替時に更新）。向き反転で符号を掛けるため保持する */
   private spriteScale = 1;
@@ -57,6 +62,9 @@ export class Player {
     this.flashTimer = 0;
     this.facingX = 1;
     this.facingY = 0;
+    this.shieldIntervalSec = 0;
+    this.shieldChargeTimer = 0;
+    this.shieldReady = false;
   }
 
   applyModifiers(mods: Modifiers): void {
@@ -64,6 +72,11 @@ export class Player {
     // 最大HPが増えた分はそのまま回復させず、上限だけ広げる
     this.maxHpMul = mods.maxHpMul;
     this.regenPerSec = PLAYER_STATS.regenPerSec + mods.regenPerSec;
+    // シールド初取得・強化時はチャージをやり直す（即時発動させない）
+    if (mods.shieldIntervalSec !== this.shieldIntervalSec) {
+      this.shieldIntervalSec = mods.shieldIntervalSec;
+      this.shieldChargeTimer = 0;
+    }
   }
 
   /** 移動は8方向ではなくアナログ（§7）。input は正規化済みなのでそのまま掛ける */
@@ -82,6 +95,15 @@ export class Player {
     // 自動回復（バイタリティ。§9）
     if (this.regenPerSec > 0 && this.hp < this.maxHp) {
       this.hp = Math.min(this.maxHp, this.hp + this.regenPerSec * dtSec);
+    }
+
+    // シールドのチャージ（§9 Phase 8）
+    if (this.shieldIntervalSec > 0 && !this.shieldReady) {
+      this.shieldChargeTimer += dtSec;
+      if (this.shieldChargeTimer >= this.shieldIntervalSec) {
+        this.shieldReady = true;
+        this.shieldChargeTimer = 0;
+      }
     }
   }
 

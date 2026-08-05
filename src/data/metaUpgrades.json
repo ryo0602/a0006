@@ -40,5 +40,19 @@
     "addPerLevel": 1,
     "maxLevel": 3,
     "baseCost": 150
+  },
+  "meta_exp": {
+    "name": "成長加速",
+    "stat": "expGain",
+    "addPerLevel": 0.1,
+    "maxLevel": 5,
+    "baseCost": 100
+  },
+  "meta_magnet": {
+    "name": "回収範囲",
+    "stat": "pickupRange",
+    "addPerLevel": 0.1,
+    "maxLevel": 5,
+    "baseCost": 60
   }
 }

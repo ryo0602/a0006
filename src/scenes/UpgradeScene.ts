@@ -1,16 +1,30 @@
 import { Container, Graphics, NineSliceSprite, Sprite, Text } from 'pixi.js';
 import metaUpgradesData from '../data/metaUpgrades.json';
-import { createPanel, PROMPT_DIGITS, promptTexture } from '../ui/prompts';
+import { createPanel, PROMPT_DIGITS, promptTexture, PromptKey } from '../ui/prompts';
 import { COLORS, FONT_MONO } from '../ui/theme';
 import type { MetaUpgradeDef, Scene } from '../types';
 
 const META_DEFS: Record<string, MetaUpgradeDef> = metaUpgradesData;
 export const META_IDS = Object.keys(metaUpgradesData);
 
+// 行のキー割り当て。数字キーの画像素材が6までのため、7・8行目は Q / W を使う（Phase 7）
+const ROW_KEYS: readonly PromptKey[] = [...PROMPT_DIGITS, 'Q', 'W'];
+const ROW_KEY_CODES = [
+  ['Digit1', 'Numpad1'],
+  ['Digit2', 'Numpad2'],
+  ['Digit3', 'Numpad3'],
+  ['Digit4', 'Numpad4'],
+  ['Digit5', 'Numpad5'],
+  ['Digit6', 'Numpad6'],
+  ['KeyQ'],
+  ['KeyW'],
+];
+
 // 行幅は画面幅に追従させ、フォントは縮小しない（Phase 6。9スライスなので伸縮自在）
 const ROW_MAX_W = 540;
 const ROW_H = 52;
-const ROW_GAP = 8;
+/** 8行 + 見出し + 戻るボタンを縦640に収めるための行間（Phase 7 で 8→6 に詰めた） */
+const ROW_GAP = 6;
 
 /** Game から渡される表示状態（セーブ由来。§14） */
 export interface UpgradeView {
@@ -104,11 +118,7 @@ export class UpgradeScene implements Scene {
         handlers.onBack();
         return;
       }
-      const digit = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'].indexOf(e.code);
-      const numpad = ['Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6'].indexOf(
-        e.code,
-      );
-      const index = digit >= 0 ? digit : numpad;
+      const index = ROW_KEY_CODES.findIndex((codes) => codes.includes(e.code));
       if (index >= 0 && index < META_IDS.length) handlers.onPurchase(META_IDS[index]);
     });
   }
@@ -171,7 +181,7 @@ export class UpgradeScene implements Scene {
     });
     costText.anchor.set(1, 0.5);
 
-    const key = new Sprite(promptTexture(PROMPT_DIGITS[index]));
+    const key = new Sprite(promptTexture(ROW_KEYS[index]));
     key.scale.set(2);
     key.anchor.set(1, 0.5);
 
@@ -222,6 +232,10 @@ function effectText(def: MetaUpgradeDef): string {
       return `開始レベル +${def.addPerLevel}（レベルごと）`;
     case 'reroll':
       return `リロール回数 +${def.addPerLevel}（レベルごと）`;
+    case 'expGain':
+      return `EXP獲得 +${Math.round(def.addPerLevel * 100)}%（レベルごと）`;
+    case 'pickupRange':
+      return `ジェム取得範囲 +${Math.round(def.addPerLevel * 100)}%（レベルごと）`;
     default:
       return `${def.name} +${Math.round(def.addPerLevel * 100)}%（レベルごと）`;
   }

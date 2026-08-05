@@ -39,6 +39,8 @@ function defaultSave(): SaveData {
     metaUpgrades: {},
     stats: { totalKills: 0, totalPlaytimeSec: 0, bestTimeSec: 0 },
     lastCharacter: 'runner',
+    dangerUnlocked: 0,
+    lastDanger: 0,
   };
 }
 
@@ -109,6 +111,15 @@ function normalize(raw: Record<string, unknown>): SaveData {
 
   if (typeof raw.lastCharacter === 'string' && out.unlockedCharacters.includes(raw.lastCharacter)) {
     out.lastCharacter = raw.lastCharacter;
+  }
+
+  // 危険度（§12 Phase 9）。0〜maxLevel にクランプし、選択値は解放範囲に収める
+  const maxDanger = stagesData.danger.maxLevel;
+  if (typeof raw.dangerUnlocked === 'number' && Number.isFinite(raw.dangerUnlocked)) {
+    out.dangerUnlocked = Math.min(maxDanger, Math.max(0, Math.floor(raw.dangerUnlocked)));
+  }
+  if (typeof raw.lastDanger === 'number' && Number.isFinite(raw.lastDanger)) {
+    out.lastDanger = Math.min(out.dangerUnlocked, Math.max(0, Math.floor(raw.lastDanger)));
   }
 
   return out;

@@ -1,14 +1,28 @@
 {
-  "gemExp": { "gem_small": 3, "gem_medium": 12, "gem_large": 50 },
-  "expBase": 10,
-  "expPerLevel": 5,
-  "expStepEvery5": 10,
+  "gemExp": {
+    "gem_small": 2,
+    "gem_medium": 7,
+    "gem_large": 30
+  },
+  "expBase": 25,
+  "expPerLevel": 20,
+  "expStepEvery5": 0,
   "rerollsPerRun": 3,
   "healRatio": 0.2,
-  "coinKillDivisor": 20,
-  "coinPerMinute": 10,
+  "coinKillDivisor": 5,
+  "coinPerMinute": 30,
   "coinClearMultiplier": 1.5,
   "gemAttractAccel": 1600,
   "gemBaseSpeed": 60,
-  "gemCollectRadius": 18
+  "gemCollectRadius": 18,
+  "evolutionReachWeight": 3,
+  "newWeaponWeightByOwned": [
+    1,
+    1,
+    1,
+    0.7,
+    0.4,
+    0.2
+  ],
+  "weaponUpWeight": 1.3
 }

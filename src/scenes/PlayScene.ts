@@ -82,6 +82,11 @@ for (const evoId of EVOLUTION_IDS) {
   BASE_TO_EVOLUTION[EVOLUTIONS[evoId].base] = evoId;
 }
 
+/** 最初から解放されている武器（unlockStage 指定なし。§8 Phase 8） */
+const DEFAULT_WEAPONS = WEAPON_IDS.filter(
+  (id) => (weaponsData as Record<string, { unlockStage?: string }>)[id].unlockStage === undefined,
+);
+
 /** キャラ・メタ強化なしの中立セットアップ（起動直後のプレースホルダ） */
 function neutralSetup(): RunSetup {
   return {
@@ -95,9 +100,16 @@ function neutralSetup(): RunSetup {
       pickupRangeMul: 1,
       maxHpMul: 1,
       regenPerSec: 0,
+      critChance: 0,
+      areaMul: 1,
+      shieldIntervalSec: 0,
     },
     startLevel: 1,
     extraRerolls: 0,
+    expGainMul: 1,
+    unlockedWeapons: [...DEFAULT_WEAPONS],
+    dangerLevel: 0,
+    shieldStart: false,
   };
 }
 
@@ -158,6 +170,13 @@ export class PlayScene implements Scene {
   private passiveLevels: Record<string, number> = {};
   private currentChoices: LevelChoice[] = [];
   private finished = false;
+  /** クリティカル率（§9 Phase 8）。applyPassives が更新する */
+  private critChance = 0;
+  /** 解放済み武器（§8 Phase 8）。候補生成が参照する */
+  private unlockedWeapons = new Set<string>(DEFAULT_WEAPONS);
+  /** 危険度係数（§12 Phase 9）。HP係数はボスHPバー、コイン係数は報酬計算が使う */
+  private dangerHpMul = 1;
+  private dangerCoinMul = 1;
 
   /** ボスHPバー用の参照（§16）。出現時にキャッシュし、撃破で null に戻す */
   private bossRef: Enemy | null = null;
@@ -227,6 +246,11 @@ export class PlayScene implements Scene {
       ),
       boomerang: createBulletTexture(app, evolutionsData.boomerang.stats.radius),
       infernoCircle: createInfernoTexture(app, evolutionsData.inferno.stats.range),
+      spear: createSpearTexture(app),
+      axe: createAxeTexture(app),
+      mine: createMineTexture(app),
+      droneBody: createDroneTexture(app),
+      explosion: createExplosionTexture(app),
     };
 
     this.bg = new TilingSprite({ texture: tileTexture });
@@ -317,8 +341,13 @@ export class PlayScene implements Scene {
       damageMul: 1,
       cooldownMul: 1,
       searchRadius: 800,
+      areaMul: 1,
       spawnProjectile: () => this.spawnProjectile(),
-      applyDamage: (enemy, dmg) => enemy.takeDamage(dmg),
+      // クリティカル（§9 Phase 8）はダメージ適用の一元窓口で判定する
+      applyDamage: (enemy, dmg) =>
+        enemy.takeDamage(
+          this.critChance > 0 && this.random.next() < this.critChance ? dmg * 2 : dmg,
+        ),
     };
 
     this.joystick = new Joystick(input);
@@ -365,6 +394,12 @@ export class PlayScene implements Scene {
   startStage(setup: RunSetup): void {
     this.setup = setup;
     this.stage = setup.stage;
+    // 解放済み武器（§8 Phase 8）。セーブ由来なのでステージ開始時に更新する
+    this.unlockedWeapons = new Set(setup.unlockedWeapons);
+    // 危険度係数（§12 Phase 9）。危険度0 = すべて1.0
+    this.dangerHpMul = 1 + stagesData.danger.hpMulPerLevel * setup.dangerLevel;
+    this.dangerCoinMul = 1 + stagesData.danger.coinMulPerLevel * setup.dangerLevel;
+    this.spawn.setDanger(setup.dangerLevel);
     this.spawn.setStage(setup.stage);
     // ステージ背景（§12: アスファルト / 鉄板 / 汚泥）
     this.bg.texture = stageBackgroundTexture(setup.stage.id);
@@ -411,7 +446,7 @@ export class PlayScene implements Scene {
 
     this.player.reset();
     this.spawn.reset();
-    this.levelSystem.reset(this.setup.startLevel, this.setup.extraRerolls);
+    this.levelSystem.reset(this.setup.startLevel, this.setup.extraRerolls, this.setup.expGainMul);
     this.pickup.reset();
     this.damage.reset();
     this.weapons.reset();
@@ -420,6 +455,8 @@ export class PlayScene implements Scene {
     this.applyPassives();
     // キャラ・メタの最大HP補正を反映してから全回復させる（tank 130 開始など）
     this.player.hp = this.player.maxHp;
+    // paladin（§7 Phase 9）: シールドを開始時からチャージ済みで持つ
+    if (this.setup.shieldStart) this.player.shieldReady = true;
     this.modal.hide();
     this.pauseMenu.hide();
     this.paused = false;
@@ -501,12 +538,28 @@ export class PlayScene implements Scene {
       for (let i = 0; i < this.enemies.length; i++) {
         if (this.enemies[i].isBoss) {
           this.bossRef = this.enemies[i];
-          this.bossMaxHp = enemiesData.boss.hp * this.stage.difficultyMul;
+          this.bossMaxHp = enemiesData.boss.hp * this.stage.difficultyMul * this.dangerHpMul;
           // ボス出現の演出（§16: シェイクはボス出現と爆弾のみ）
           this.camera.shake(SHAKE_BOSS_AMP, SHAKE_BOSS_SEC);
+          // §12: ボスアリーナ。溜まった通常敵を全消滅させる（ドロップ・キル数なし）。
+          // 5分設計ではボス出現時点の残存数が多く、最寄り優先の武器がボスに
+          // 一切当たらなくなることが実測で確認されたための措置
+          this.clearNormalEnemies();
           break;
         }
       }
+    }
+  }
+
+  /** ボス以外の通常敵をドロップなしで即時回収する（§12 ボスアリーナ） */
+  private clearNormalEnemies(): void {
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const e = this.enemies[i];
+      if (e.isBoss) continue;
+      e.deactivate();
+      this.enemies[i] = this.enemies[this.enemies.length - 1];
+      this.enemies.pop();
+      this.pool.release(e);
     }
   }
 
@@ -525,15 +578,16 @@ export class PlayScene implements Scene {
   }
 
   /**
-   * コイン計算（§14）: floor((floor(キル数/20) + 生存分数×10) × ステージ係数)、
-   * クリア時はさらに ×1.5。係数はコイン専用（stages.json の coinMultiplier）
+   * コイン計算（§14）: floor((floor(キル数/5) + 生存分数×30) × ステージ係数 × 危険度係数)、
+   * クリア時はさらに ×1.5。ステージ係数はコイン専用（stages.json の coinMultiplier）
    */
   private coinsEarned(cleared: boolean): number {
     const minutes = Math.min(this.elapsedSec, this.stage.bossAtSec) / 60;
     const base = Math.floor(
       (Math.floor(this.damage.kills / levelingData.coinKillDivisor) +
         minutes * levelingData.coinPerMinute) *
-        this.stage.coinMultiplier,
+        this.stage.coinMultiplier *
+        this.dangerCoinMul,
     );
     return cleared ? Math.floor(base * levelingData.coinClearMultiplier) : base;
   }
@@ -549,6 +603,16 @@ export class PlayScene implements Scene {
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       if (p.active && !p.persistent) {
+        // 重力（投斧）と進行方向加速（ランス）。通常弾は両方 0 で素通り
+        if (p.ay !== 0) p.vy += p.ay * dtSec;
+        if (p.accel !== 0) {
+          const sp = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (sp > 1e-6) {
+            const scale = (sp + p.accel * dtSec) / sp;
+            p.vx *= scale;
+            p.vy *= scale;
+          }
+        }
         p.x += p.vx * dtSec;
         p.y += p.vy * dtSec;
         p.lifeSec -= dtSec;
@@ -711,36 +775,86 @@ export class PlayScene implements Scene {
       out.push({ kind: 'evolution', evolutionId: evoId });
     }
 
-    const cands: LevelChoice[] = [];
+    // 保証枠（§13 Phase 8）: 所持武器に Lv5 未満があれば、3枠の1つは必ずその強化にする。
+    // 候補プールの肥大で「伸ばしかけの武器が最後まで伸ばせない」事故を防ぐ
+    const upgradable: string[] = [];
     for (const w of this.weapons.list) {
-      if (!w.evolved && w.level < 5) cands.push({ kind: 'weaponUp', weaponId: w.id });
+      if (!w.evolved && w.level < 5) upgradable.push(w.id);
+    }
+    let guaranteedUp: string | null = null;
+    if (out.length < 3 && upgradable.length > 0) {
+      guaranteedUp = upgradable[Math.floor(this.random.next() * upgradable.length)];
+      out.push({ kind: 'weaponUp', weaponId: guaranteedUp });
+    }
+
+    const cands: LevelChoice[] = [];
+    const weights: number[] = [];
+    for (const id of upgradable) {
+      if (id === guaranteedUp) continue;
+      cands.push({ kind: 'weaponUp', weaponId: id });
+      weights.push(levelingData.weaponUpWeight);
     }
     if (this.weapons.count < MAX_WEAPONS) {
+      // 未所持武器は所持数が増えるほど出にくくする（§13 Phase 8: ビルドの収束）
+      const newWeight =
+        levelingData.newWeaponWeightByOwned[
+          Math.min(this.weapons.count, levelingData.newWeaponWeightByOwned.length - 1)
+        ];
       for (const id of WEAPON_IDS) {
         if (this.weapons.has(id)) continue;
+        // 未解放の新武器は候補に出さない（§8 Phase 8: ステージクリアで解放）
+        if (!this.unlockedWeapons.has(id)) continue;
         // 進化済みの元武器は再取得させない（同じ進化を2つ作れてしまうため）
         const evoId = BASE_TO_EVOLUTION[id];
         if (evoId !== undefined && this.weapons.has(evoId)) continue;
         cands.push({ kind: 'weaponNew', weaponId: id });
+        weights.push(newWeight);
       }
     }
     for (const id of PASSIVE_IDS) {
       if ((this.passiveLevels[id] ?? 0) < PASSIVES[id].maxLevel) {
         cands.push({ kind: 'passive', passiveId: id });
+        weights.push(this.passiveReachWeight(id));
       }
     }
-    // Fisher-Yates で混ぜて残枠へ（非重複）。レベルアップ時のみの処理なので割り当ては許容
-    for (let i = cands.length - 1; i > 0; i--) {
-      const j = Math.floor(this.random.next() * (i + 1));
-      const tmp = cands[i];
-      cands[i] = cands[j];
-      cands[j] = tmp;
-    }
-    for (let i = 0; i < cands.length && out.length < 3; i++) {
-      out.push(cands[i]);
+    // 重み付きの非復元抽選で残枠を埋める（§10 リーチ補正）。レベルアップ時のみの処理
+    let totalWeight = 0;
+    for (let i = 0; i < weights.length; i++) totalWeight += weights[i];
+    while (cands.length > 0 && out.length < 3) {
+      let r = this.random.next() * totalWeight;
+      let idx = 0;
+      while (idx < cands.length - 1 && r >= weights[idx]) {
+        r -= weights[idx];
+        idx++;
+      }
+      out.push(cands[idx]);
+      totalWeight -= weights[idx];
+      cands[idx] = cands[cands.length - 1];
+      cands.pop();
+      weights[idx] = weights[weights.length - 1];
+      weights.pop();
     }
     while (out.length < 3) out.push({ kind: 'heal' });
     return out;
+  }
+
+  /**
+   * 進化リーチ補正（§10）: 「武器 Lv5（未進化）+ 指定パッシブ Lv2 以上」のリーチ中は、
+   * そのパッシブの抽選重みを evolutionReachWeight 倍にする。
+   * 正しく育てたのに進化前の最後の1ピックが引けない、という抽選事故を減らすための補正。
+   * リーチが複数ある場合はすべて適用する（同一パッシブなら重ね掛け）。
+   */
+  private passiveReachWeight(passiveId: string): number {
+    let weight = 1;
+    for (const evoId of EVOLUTION_IDS) {
+      const evo = EVOLUTIONS[evoId];
+      if (evo.requiredPassive !== passiveId) continue;
+      const weapon = this.weapons.find(evo.base);
+      if (weapon === null || weapon.evolved || weapon.level < 5) continue;
+      if ((this.passiveLevels[passiveId] ?? 0) < 2) continue;
+      weight *= levelingData.evolutionReachWeight;
+    }
+    return weight;
   }
 
   /** カード表示用テキスト。§16: 効果説明には必ず数値を含める */
@@ -803,11 +917,17 @@ export class PlayScene implements Scene {
       pickupRangeMul: b.pickupRangeMul * p.pickupRangeMul,
       maxHpMul: b.maxHpMul * p.maxHpMul,
       regenPerSec: b.regenPerSec + p.regenPerSec,
+      critChance: b.critChance + p.critChance,
+      areaMul: b.areaMul * p.areaMul,
+      // シールドはキャラ特性（paladin）とパッシブの短い方を採用（§7 / §9）
+      shieldIntervalSec: combineShieldInterval(b.shieldIntervalSec, p.shieldIntervalSec),
     };
     this.player.applyModifiers(mods);
     this.pickup.pickupRangeMul = mods.pickupRangeMul;
     this.weaponCtx.damageMul = mods.damageMul;
     this.weaponCtx.cooldownMul = mods.cooldownMul;
+    this.weaponCtx.areaMul = mods.areaMul;
+    this.critChance = mods.critChance;
   }
 
   render(): void {
@@ -956,6 +1076,53 @@ function buildWeaponViewDefs(): Record<string, WeaponViewDef> {
       })),
     ),
   };
+  defs.spear = {
+    name: weaponsData.spear.name,
+    newText: `向いている方向へ刺突 / ダメージ ${weaponsData.spear.levels[0].damage}`,
+    upTexts: diffTexts(
+      weaponsData.spear.levels.map((l) => ({
+        ダメージ: l.damage,
+        弾数: l.count,
+        貫通: l.pierce,
+        CD: l.cooldownSec,
+      })),
+    ),
+  };
+  defs.axe = {
+    name: weaponsData.axe.name,
+    newText: `放物線を描いて落ちる / ダメージ ${weaponsData.axe.levels[0].damage}`,
+    upTexts: diffTexts(
+      weaponsData.axe.levels.map((l) => ({
+        ダメージ: l.damage,
+        弾数: l.count,
+        貫通: l.pierce,
+        CD: l.cooldownSec,
+      })),
+    ),
+  };
+  defs.mine = {
+    name: weaponsData.mine.name,
+    newText: `足元に設置し接触で爆発 / ダメージ ${weaponsData.mine.levels[0].damage}`,
+    upTexts: diffTexts(
+      weaponsData.mine.levels.map((l) => ({
+        ダメージ: l.damage,
+        設置数: l.count,
+        爆発半径: l.blastRadius,
+        CD: l.cooldownSec,
+      })),
+    ),
+  };
+  defs.drone = {
+    name: weaponsData.drone.name,
+    newText: `子機が自動射撃 / ダメージ ${weaponsData.drone.levels[0].damage}`,
+    upTexts: diffTexts(
+      weaponsData.drone.levels.map((l) => ({
+        ダメージ: l.damage,
+        弾数: l.count,
+        CD: l.cooldownSec,
+      })),
+    ),
+  };
   return defs;
 }
 
@@ -966,12 +1133,20 @@ function buildEvolutionTexts(): Record<string, string> {
   const b = evolutionsData.boomerang.stats;
   const st = evolutionsData.storm.stats;
   const inf = evolutionsData.inferno.stats;
+  const la = evolutionsData.lance.stats;
+  const me = evolutionsData.meteor.stats;
+  const cl = evolutionsData.cluster.stats;
+  const tw = evolutionsData.twindrone.stats;
   return {
     gatling: `連射化 / ダメージ ${g.damage} / CD ${g.cooldownSec}s`,
     satellite: `${s.count}個・二重回転 / ダメージ ${s.damage}`,
     boomerang: `貫通無制限・戻ってくる / ダメージ ${b.damage}`,
     storm: `連続落雷 ×${st.strikes} / ダメージ ${st.damage}`,
     inferno: `全方位 ${inf.damagePerTick}/0.2s / 与ダメの${inf.lifestealRatio * 100}%吸収`,
+    lance: `貫通無制限・加速貫通 ×${la.count} / ダメージ ${la.damage}`,
+    meteor: `隕石 ×${me.count} / 着弾爆発 ${me.damage} / 半径 ${me.blastRadius}`,
+    cluster: `爆発 ${cl.damage} + 子爆発 ${cl.childDamage}×${cl.childCount}`,
+    twindrone: `2機化 / ダメージ ${tw.damage} / CD ${tw.cooldownSec}s`,
   };
 }
 
@@ -1001,7 +1176,20 @@ function passiveEffectText(def: PassiveDef): string {
   if (def.maxHpAddPerLevel !== undefined) {
     return `最大HP +${def.maxHpAddPerLevel * 100}% / 回復 +${def.regenAddPerLevel ?? 0}/s`;
   }
+  if (def.critChancePerLevel !== undefined) {
+    return `${def.critChancePerLevel * 100}% でダメージ2倍`;
+  }
+  if (def.areaAddPerLevel !== undefined) return `攻撃範囲 +${def.areaAddPerLevel * 100}%`;
+  if (def.shieldIntervalBase !== undefined) {
+    return `被弾1回無効 / チャージ -${def.shieldIntervalCutPerLevel ?? 0}s`;
+  }
   return '';
+}
+
+/** シールド間隔の合成: 両方あれば短い方、片方だけならその値、なければ 0 */
+function combineShieldInterval(a: number, b: number): number {
+  if (a > 0 && b > 0) return Math.min(a, b);
+  return a > 0 ? a : b;
 }
 
 /** パッシブ合算（§9）。効果はレベル加算、CD短縮は合計 -50% でクランプ */
@@ -1013,6 +1201,9 @@ function computeModifiers(levels: Record<string, number>): Modifiers {
   let pickupRange = 1;
   let maxHp = 1;
   let regen = 0;
+  let crit = 0;
+  let area = 1;
+  let shieldInterval = 0;
   for (const id of Object.keys(levels)) {
     const def = PASSIVES[id];
     const lv = levels[id];
@@ -1024,6 +1215,12 @@ function computeModifiers(levels: Record<string, number>): Modifiers {
     pickupRange += (def.pickupRangeAddPerLevel ?? 0) * lv;
     maxHp += (def.maxHpAddPerLevel ?? 0) * lv;
     regen += (def.regenAddPerLevel ?? 0) * lv;
+    crit += (def.critChancePerLevel ?? 0) * lv;
+    area += (def.areaAddPerLevel ?? 0) * lv;
+    if (def.shieldIntervalBase !== undefined) {
+      // シールド（§9 Phase 8）: チャージ間隔 = base - cut × Lv
+      shieldInterval = def.shieldIntervalBase - (def.shieldIntervalCutPerLevel ?? 0) * lv;
+    }
   }
   return {
     damageMul: damage,
@@ -1032,6 +1229,9 @@ function computeModifiers(levels: Record<string, number>): Modifiers {
     pickupRangeMul: pickupRange,
     maxHpMul: maxHp,
     regenPerSec: regen,
+    critChance: crit,
+    areaMul: area,
+    shieldIntervalSec: shieldInterval,
   };
 }
 
@@ -1135,6 +1335,84 @@ function createFlameSectorTexture(app: Application, range: number, arcDeg: numbe
   const texture = app.renderer.generateTexture({
     target: g,
     frame: new Rectangle(0, -spread, range, spread * 2),
+  });
+  g.destroy();
+  return texture;
+}
+
+/** スピア・ランス（横向きの細長い刺突。回転は発射時に付ける） */
+function createSpearTexture(app: Application): Texture {
+  const g = new Graphics()
+    .poly([0, 3, 22, 0, 30, 3, 22, 6, 0, 3])
+    .fill(COLORS.textMain);
+  const texture = app.renderer.generateTexture({
+    target: g,
+    frame: new Rectangle(0, 0, 30, 7),
+  });
+  g.destroy();
+  return texture;
+}
+
+/** 投斧・メテオの落下体（回転して見えるよう菱形） */
+function createAxeTexture(app: Application): Texture {
+  const s = 9;
+  const g = new Graphics()
+    .poly([s, 0, s * 2, s, s, s * 2, 0, s])
+    .fill(COLORS.textMain)
+    .poly([s, 3, s * 2 - 3, s, s, s * 2 - 3, 3, s])
+    .fill(COLORS.textDim);
+  const texture = app.renderer.generateTexture({
+    target: g,
+    frame: new Rectangle(0, 0, s * 2, s * 2),
+  });
+  g.destroy();
+  return texture;
+}
+
+/** 地雷（設置物。琥珀の縁 + 赤芯で危険物に見せる） */
+function createMineTexture(app: Application): Texture {
+  const r = 9;
+  const g = new Graphics()
+    .circle(r + 1, r + 1, r)
+    .fill(COLORS.bgSurface)
+    .circle(r + 1, r + 1, r)
+    .stroke({ width: 2, color: COLORS.amber })
+    .circle(r + 1, r + 1, 3)
+    .fill(COLORS.hpRed);
+  const texture = app.renderer.generateTexture({
+    target: g,
+    frame: new Rectangle(0, 0, (r + 1) * 2, (r + 1) * 2),
+  });
+  g.destroy();
+  return texture;
+}
+
+/** ドローンの機体（小さな逆三角。ティントなしで視認しやすい琥珀） */
+function createDroneTexture(app: Application): Texture {
+  const g = new Graphics()
+    .poly([0, 0, 16, 0, 8, 12])
+    .fill(COLORS.amber)
+    .rect(6, -3, 4, 3)
+    .fill(COLORS.textMain);
+  const texture = app.renderer.generateTexture({
+    target: g,
+    frame: new Rectangle(0, -3, 16, 15),
+  });
+  g.destroy();
+  return texture;
+}
+
+/** 爆発の残光（§16: シェイクは付けない）。半径は WeaponBase の EXPLOSION_TEX_RADIUS と一致させる */
+function createExplosionTexture(app: Application): Texture {
+  const r = 60;
+  const g = new Graphics()
+    .circle(r, r, r)
+    .fill({ color: COLORS.amber, alpha: 0.45 })
+    .circle(r, r, r * 0.55)
+    .fill({ color: COLORS.textMain, alpha: 0.7 });
+  const texture = app.renderer.generateTexture({
+    target: g,
+    frame: new Rectangle(0, 0, r * 2, r * 2),
   });
   g.destroy();
   return texture;

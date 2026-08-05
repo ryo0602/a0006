@@ -4,7 +4,14 @@
     "base": "shot",
     "requiredPassive": "haste",
     "requiredPassiveLevel": 3,
-    "stats": { "damage": 18, "cooldownSec": 0.15, "count": 1, "speed": 550, "radius": 6, "lifeSec": 1.6 }
+    "stats": {
+      "damage": 18,
+      "cooldownSec": 0.15,
+      "count": 1,
+      "speed": 550,
+      "radius": 6,
+      "lifeSec": 1.6
+    }
   },
   "satellite": {
     "name": "サテライト",
@@ -26,20 +33,101 @@
     "base": "shuriken",
     "requiredPassive": "power",
     "requiredPassiveLevel": 3,
-    "stats": { "damage": 40, "cooldownSec": 1.2, "count": 2, "speed": 480, "radius": 14, "outSec": 0.55 }
+    "stats": {
+      "damage": 40,
+      "cooldownSec": 1.2,
+      "count": 2,
+      "speed": 480,
+      "radius": 14,
+      "outSec": 0.55
+    }
   },
   "storm": {
     "name": "ストーム",
     "base": "thunder",
     "requiredPassive": "power",
     "requiredPassiveLevel": 3,
-    "stats": { "damage": 45, "cooldownSec": 0.4, "strikes": 3, "blastRadius": 80 }
+    "stats": {
+      "damage": 45,
+      "cooldownSec": 0.4,
+      "strikes": 3,
+      "blastRadius": 80
+    }
   },
   "inferno": {
     "name": "インフェルノ",
     "base": "flame",
     "requiredPassive": "vitality",
     "requiredPassiveLevel": 3,
-    "stats": { "damagePerTick": 12, "tickSec": 0.2, "range": 200, "lifestealRatio": 0.05 }
+    "stats": {
+      "damagePerTick": 12,
+      "tickSec": 0.2,
+      "range": 200,
+      "lifestealRatio": 0.05
+    }
+  },
+  "lance": {
+    "name": "ランス",
+    "base": "spear",
+    "requiredPassive": "crit",
+    "requiredPassiveLevel": 3,
+    "stats": {
+      "damage": 45,
+      "cooldownSec": 0.7,
+      "count": 2,
+      "speed": 560,
+      "accelPerSec": 900,
+      "radius": 9,
+      "lifeSec": 1.6
+    }
+  },
+  "meteor": {
+    "name": "メテオ",
+    "base": "axe",
+    "requiredPassive": "area",
+    "requiredPassiveLevel": 3,
+    "stats": {
+      "damage": 60,
+      "cooldownSec": 1.5,
+      "count": 2,
+      "blastRadius": 110,
+      "fallSec": 0.8,
+      "radius": 12,
+      "spawnRange": 260
+    }
+  },
+  "cluster": {
+    "name": "クラスターマイン",
+    "base": "mine",
+    "requiredPassive": "area",
+    "requiredPassiveLevel": 3,
+    "stats": {
+      "damage": 60,
+      "cooldownSec": 1.8,
+      "count": 4,
+      "triggerRadius": 26,
+      "blastRadius": 100,
+      "childCount": 3,
+      "childDamage": 30,
+      "childBlastRadius": 70,
+      "childDelaySec": 0.25,
+      "childScatter": 90,
+      "armSec": 0.4,
+      "lifeSec": 10
+    }
+  },
+  "twindrone": {
+    "name": "ツインドローン",
+    "base": "drone",
+    "requiredPassive": "shield",
+    "requiredPassiveLevel": 3,
+    "stats": {
+      "damage": 20,
+      "cooldownSec": 0.4,
+      "count": 2,
+      "speed": 520,
+      "radius": 5,
+      "lifeSec": 1.4
+    }
   }
 }

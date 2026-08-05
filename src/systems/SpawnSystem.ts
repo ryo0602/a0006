@@ -1,12 +1,14 @@
 import enemiesData from '../data/enemies.json';
+import stagesData from '../data/stages.json';
 import type { Camera } from '../core/Camera';
 import type { ObjectPool } from '../core/ObjectPool';
 import type { Random } from '../core/Random';
 import { ENEMY_LIMIT_PC } from '../core/device';
 import type { Enemy } from '../entities/Enemy';
-import type { DifficultyGrowth, EnemyStats, StageDef, WaveDef } from '../types';
+import type { DangerDef, DifficultyGrowth, EnemyStats, StageDef, WaveDef } from '../types';
 
 const ENEMY_STATS: Record<string, EnemyStats> = enemiesData;
+const DANGER: DangerDef = stagesData.danger;
 
 /** 画面外スポーンのマージン（§12: カメラ矩形の外周 + 80px） */
 const SPAWN_MARGIN = 80;
@@ -38,6 +40,11 @@ export class SpawnSystem {
   private spawnAcc = 0;
   private waves: PreparedWave[];
 
+  /** 危険度係数（§12 Phase 9）。危険度0 = すべて1.0 で現行バランスのまま */
+  private dangerHpMul = 1;
+  private dangerDamageMul = 1;
+  private dangerEliteMul = 1;
+
   constructor(
     stage: StageDef,
     private readonly growth: DifficultyGrowth,
@@ -50,10 +57,21 @@ export class SpawnSystem {
     this.waves = stage.waves.map(prepareWave);
   }
 
+  /**
+   * 危険度（§12 Phase 9）。HP・ダメージ係数と、エリート敵（tank_z / spitter）の
+   * 抽選重み倍率を設定する。湧きレートは上げない（敵上限に張り付いて無効化されるため、
+   * 数ではなく質で難度を上げる）。setStage より先に呼ぶこと
+   */
+  setDanger(level: number): void {
+    this.dangerHpMul = 1 + DANGER.hpMulPerLevel * level;
+    this.dangerDamageMul = 1 + DANGER.damageMulPerLevel * level;
+    this.dangerEliteMul = 1 + DANGER.eliteWeightPerLevel * level;
+  }
+
   /** ステージ選択（§12）。ウェーブテーブルを差し替えて初期化する */
   setStage(stage: StageDef): void {
     this.stage = stage;
-    this.waves = stage.waves.map(prepareWave);
+    this.waves = stage.waves.map((w) => prepareWave(w, this.dangerEliteMul));
     this.reset();
   }
 
@@ -105,15 +123,16 @@ export class SpawnSystem {
 
     const id = this.pickId(wave);
 
-    // §12 の難易度倍率（経過時間）× ステージ倍率。ボス出現後は成長を凍結する
+    // §12: 時間係数 × ステージ係数 × 危険度係数。ボス出現後は時間成長を凍結する
     const minutes = Math.min(this.elapsedSec, this.stage.bossAtSec) / 60;
-    const hpMul = (1 + minutes * this.growth.hpPerMin) * this.stage.difficultyMul;
-    const damageMul = (1 + minutes * this.growth.damagePerMin) * this.stage.difficultyMul;
+    const hpMul = (1 + minutes * this.growth.hpPerMin) * this.stage.difficultyMul * this.dangerHpMul;
+    const damageMul =
+      (1 + minutes * this.growth.damagePerMin) * this.stage.difficultyMul * this.dangerDamageMul;
 
     this.spawnAt(enemy, id, hpMul, damageMul);
   }
 
-  /** ボス（§11 / §12）。時間経過の難易度倍率は掛けず、ステージ倍率のみ適用する */
+  /** ボス（§11 / §12）。時間係数は掛けず、ステージ係数 × 危険度係数を適用する */
   private spawnBoss(): void {
     let enemy = this.pool.acquire();
     if (enemy === null) {
@@ -126,7 +145,12 @@ export class SpawnSystem {
       enemy = this.pool.acquire();
       if (enemy === null) return;
     }
-    this.spawnAt(enemy, 'boss', this.stage.difficultyMul, this.stage.difficultyMul);
+    this.spawnAt(
+      enemy,
+      'boss',
+      this.stage.difficultyMul * this.dangerHpMul,
+      this.stage.difficultyMul * this.dangerDamageMul,
+    );
     enemy.isBoss = true;
   }
 
@@ -168,12 +192,15 @@ export class SpawnSystem {
   }
 }
 
-function prepareWave(wave: WaveDef): PreparedWave {
+function prepareWave(wave: WaveDef, eliteMul: number): PreparedWave {
   const ids = Object.keys(wave.mix);
   const cumWeights: number[] = [];
   let total = 0;
   for (const id of ids) {
-    total += wave.mix[id] ?? 0;
+    // 危険度はエリート敵（§12 Phase 9）の重みだけを引き上げる。
+    // 登場する敵種そのものは変えないのでステージ個性は保たれる
+    const mul = DANGER.eliteTypes.includes(id) ? eliteMul : 1;
+    total += (wave.mix[id] ?? 0) * mul;
     cumWeights.push(total);
   }
   return { untilSec: wave.untilSec, perSec: wave.perSec, ids, cumWeights, totalWeight: total };

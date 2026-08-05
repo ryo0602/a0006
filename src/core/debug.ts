@@ -41,8 +41,19 @@ export interface DebugApi {
   saveState(): SaveData;
   /** 武器5種 Lv5 + パッシブ5種 Lv5 のフル装備にする（性能検証用） */
   maxLoadout(): void;
+  /** 指定武器を指定レベルで付与する（性能検証・スモークテスト用） */
+  addWeapon(id: string, level: number): void;
+  /** 表示中のレベルアップ3択を "kind:id" 形式で返す（自動プレイ検証用。非表示時は空配列） */
+  choices(): string[];
+  /** プレイヤー近傍の敵座標（自動プレイの回避AI用）。maxDist px 以内のみ */
+  enemySnapshot(maxDist: number): { x: number; y: number }[];
+  /** ボスのワールド座標（ボス戦の自動プレイ用）。不在なら null */
+  bossPos(): { x: number; y: number } | null;
+  /** プレイヤー近傍のジェム座標（自動プレイの回収AI用）。maxDist px 以内のみ */
+  gemSnapshot(maxDist: number): { x: number; y: number }[];
   /** 検証用の内部状態スナップショット */
   state(): {
+    elapsedSec: number;
     playerX: number;
     playerY: number;
     playerHp: number;
@@ -53,10 +64,12 @@ export interface DebugApi {
     pickupsOnField: number;
     level: number;
     exp: number;
+    expMul: number;
     pendingLevels: number;
     rerolls: number;
     kills: number;
     maxHp: number;
+    shieldReady: boolean;
     coinsPending: number;
     paused: boolean;
     pauseMenuOpen: boolean;
@@ -95,6 +108,7 @@ interface PlaySceneInternals {
   pauseMenu: { visible: boolean };
   elapsedSec: number;
   pendingBurst: number;
+  currentChoices: LevelChoice[];
   applyChoice(choice: LevelChoice): void;
   coinsEarned(cleared: boolean): number;
 }
@@ -146,6 +160,57 @@ export function attachDebug(loop: GameLoop, play: PlayScene, app: Application, g
       }
     },
     saveState: () => JSON.parse(JSON.stringify(g.save.data)) as SaveData,
+    addWeapon: (id, level) => {
+      p.applyChoice({ kind: 'weaponNew', weaponId: id });
+      const w = p.weapons.find(id);
+      if (w !== null) {
+        while (w.level < level) w.levelUp();
+      }
+    },
+    enemySnapshot: (maxDist) => {
+      const out: { x: number; y: number }[] = [];
+      const maxSq = maxDist * maxDist;
+      for (let i = 0; i < p.enemies.length; i++) {
+        const e = p.enemies[i];
+        const dx = e.x - p.player.x;
+        const dy = e.y - p.player.y;
+        if (dx * dx + dy * dy <= maxSq) out.push({ x: e.x, y: e.y });
+      }
+      return out;
+    },
+    bossPos: () => {
+      for (let i = 0; i < p.enemies.length; i++) {
+        if (p.enemies[i].isBoss) return { x: p.enemies[i].x, y: p.enemies[i].y };
+      }
+      return null;
+    },
+    gemSnapshot: (maxDist) => {
+      const out: { x: number; y: number }[] = [];
+      const maxSq = maxDist * maxDist;
+      for (let i = 0; i < p.gems.length; i++) {
+        const g = p.gems[i];
+        const dx = g.x - p.player.x;
+        const dy = g.y - p.player.y;
+        if (dx * dx + dy * dy <= maxSq) out.push({ x: g.x, y: g.y });
+      }
+      return out;
+    },
+    choices: () =>
+      p.paused
+        ? p.currentChoices.map((c) => {
+            switch (c.kind) {
+              case 'weaponNew':
+              case 'weaponUp':
+                return `${c.kind}:${c.weaponId}`;
+              case 'evolution':
+                return `evolution:${c.evolutionId}`;
+              case 'passive':
+                return `passive:${c.passiveId}`;
+              case 'heal':
+                return 'heal';
+            }
+          })
+        : [],
     maxLoadout: () => {
       for (const id of WEAPON_IDS) {
         p.applyChoice({ kind: 'weaponNew', weaponId: id });
@@ -170,6 +235,7 @@ export function attachDebug(loop: GameLoop, play: PlayScene, app: Application, g
         }
       }
       return {
+        elapsedSec: p.elapsedSec,
         playerX: p.player.x,
         playerY: p.player.y,
         playerHp: p.player.hp,
@@ -180,10 +246,12 @@ export function attachDebug(loop: GameLoop, play: PlayScene, app: Application, g
         pickupsOnField: p.pickups.length,
         level: p.levelSystem.level,
         exp: p.levelSystem.exp,
+        expMul: p.levelSystem.expMul,
         pendingLevels: p.levelSystem.pendingLevels,
         rerolls: p.levelSystem.rerolls,
         kills: p.damage.kills,
         maxHp: p.player.maxHp,
+        shieldReady: p.player.shieldReady,
         coinsPending: p.coinsEarned(false),
         paused: p.paused,
         pauseMenuOpen: p.pauseMenu.visible,

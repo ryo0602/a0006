@@ -1,12 +1,19 @@
 import type { Container } from 'pixi.js';
+import { Axe } from '../weapons/Axe';
 import { Boomerang } from '../weapons/Boomerang';
+import { Cluster } from '../weapons/Cluster';
+import { Drone } from '../weapons/Drone';
 import { Flame } from '../weapons/Flame';
 import { Gatling } from '../weapons/Gatling';
 import { Inferno } from '../weapons/Inferno';
+import { Lance } from '../weapons/Lance';
+import { Meteor } from '../weapons/Meteor';
+import { Mine } from '../weapons/Mine';
 import { Orb } from '../weapons/Orb';
 import { Satellite } from '../weapons/Satellite';
 import { Shot } from '../weapons/Shot';
 import { Shuriken } from '../weapons/Shuriken';
+import { Spear } from '../weapons/Spear';
 import { Storm } from '../weapons/Storm';
 import { Thunder } from '../weapons/Thunder';
 import { WeaponBase, WeaponContext, WeaponTextures } from '../weapons/WeaponBase';
@@ -14,7 +21,17 @@ import { WeaponBase, WeaponContext, WeaponTextures } from '../weapons/WeaponBase
 /** 武器の所持上限（§13。初期武器を含む合計） */
 export const MAX_WEAPONS = 6;
 
-export const WEAPON_IDS = ['shot', 'orb', 'shuriken', 'thunder', 'flame'] as const;
+export const WEAPON_IDS = [
+  'shot',
+  'orb',
+  'shuriken',
+  'thunder',
+  'flame',
+  'spear',
+  'axe',
+  'mine',
+  'drone',
+] as const;
 
 /**
  * 所持武器の管理と毎フレームの update 呼び出し（§4.2 の 6）。
@@ -105,6 +122,22 @@ function createWeapon(id: string, textures: WeaponTextures): WeaponBase {
       return new Storm(textures);
     case 'inferno':
       return new Inferno(textures);
+    case 'spear':
+      return new Spear(textures);
+    case 'axe':
+      return new Axe(textures);
+    case 'mine':
+      return new Mine(textures);
+    case 'drone':
+      return new Drone(textures);
+    case 'lance':
+      return new Lance(textures);
+    case 'meteor':
+      return new Meteor(textures);
+    case 'cluster':
+      return new Cluster(textures);
+    case 'twindrone':
+      return new Drone(textures, true);
     default:
       throw new Error(`未知の武器ID: ${id}`);
   }

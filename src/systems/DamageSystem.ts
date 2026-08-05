@@ -33,6 +33,15 @@ export class DamageSystem {
     // 複数の敵に同時接触しても無敵 0.5s あたり1回分しか食らわない
     if (contactDamage <= 0 || player.invincibleTimer > 0) return;
 
+    // シールド（§9 Phase 8）: チャージ済みなら被弾1回を無効化。無敵時間は通常どおり
+    // 発生させ、その場で連続ヒットしないようにする
+    if (player.shieldReady) {
+      player.shieldReady = false;
+      player.invincibleTimer = PLAYER_STATS.invincibleSec;
+      player.flashTimer = PLAYER_STATS.flashSec;
+      return;
+    }
+
     player.hp -= contactDamage;
     player.invincibleTimer = PLAYER_STATS.invincibleSec;
     player.flashTimer = PLAYER_STATS.flashSec;

@@ -2,51 +2,420 @@
   "shot": {
     "name": "ショット",
     "levels": [
-      { "damage": 14, "cooldownSec": 0.65, "count": 1, "speed": 500, "radius": 6, "lifeSec": 1.6 },
-      { "damage": 13, "cooldownSec": 0.8, "count": 1, "speed": 500, "radius": 6, "lifeSec": 1.6 },
-      { "damage": 13, "cooldownSec": 0.8, "count": 2, "speed": 500, "radius": 6, "lifeSec": 1.6 },
-      { "damage": 17, "cooldownSec": 0.68, "count": 2, "speed": 500, "radius": 6, "lifeSec": 1.6 },
-      { "damage": 17, "cooldownSec": 0.58, "count": 3, "speed": 500, "radius": 6, "lifeSec": 1.6 }
+      {
+        "damage": 14,
+        "cooldownSec": 0.65,
+        "count": 1,
+        "speed": 500,
+        "radius": 6,
+        "lifeSec": 1.6
+      },
+      {
+        "damage": 18,
+        "cooldownSec": 0.65,
+        "count": 1,
+        "speed": 500,
+        "radius": 6,
+        "lifeSec": 1.6
+      },
+      {
+        "damage": 18,
+        "cooldownSec": 0.65,
+        "count": 2,
+        "speed": 500,
+        "radius": 6,
+        "lifeSec": 1.6
+      },
+      {
+        "damage": 23,
+        "cooldownSec": 0.55,
+        "count": 2,
+        "speed": 500,
+        "radius": 6,
+        "lifeSec": 1.6
+      },
+      {
+        "damage": 23,
+        "cooldownSec": 0.47,
+        "count": 3,
+        "speed": 500,
+        "radius": 6,
+        "lifeSec": 1.6
+      }
     ]
   },
   "orb": {
     "name": "オーブ",
     "levels": [
-      { "damage": 8, "count": 1, "orbitRadius": 70, "rotSpeedRad": 2.4, "hitIntervalSec": 0.5, "radius": 10 },
-      { "damage": 10, "count": 1, "orbitRadius": 75, "rotSpeedRad": 2.4, "hitIntervalSec": 0.5, "radius": 10 },
-      { "damage": 10, "count": 2, "orbitRadius": 80, "rotSpeedRad": 2.4, "hitIntervalSec": 0.5, "radius": 10 },
-      { "damage": 13, "count": 3, "orbitRadius": 90, "rotSpeedRad": 2.6, "hitIntervalSec": 0.5, "radius": 10 },
-      { "damage": 13, "count": 4, "orbitRadius": 100, "rotSpeedRad": 2.8, "hitIntervalSec": 0.5, "radius": 10 }
+      {
+        "damage": 8,
+        "count": 1,
+        "orbitRadius": 70,
+        "rotSpeedRad": 2.4,
+        "hitIntervalSec": 0.5,
+        "radius": 10
+      },
+      {
+        "damage": 10,
+        "count": 1,
+        "orbitRadius": 75,
+        "rotSpeedRad": 2.4,
+        "hitIntervalSec": 0.5,
+        "radius": 10
+      },
+      {
+        "damage": 10,
+        "count": 2,
+        "orbitRadius": 80,
+        "rotSpeedRad": 2.4,
+        "hitIntervalSec": 0.5,
+        "radius": 10
+      },
+      {
+        "damage": 13,
+        "count": 3,
+        "orbitRadius": 90,
+        "rotSpeedRad": 2.6,
+        "hitIntervalSec": 0.5,
+        "radius": 10
+      },
+      {
+        "damage": 13,
+        "count": 4,
+        "orbitRadius": 100,
+        "rotSpeedRad": 2.8,
+        "hitIntervalSec": 0.5,
+        "radius": 10
+      }
     ]
   },
   "shuriken": {
     "name": "手裏剣",
     "levels": [
-      { "damage": 12, "cooldownSec": 1.2, "count": 1, "pierce": 2, "speed": 420, "radius": 8, "lifeSec": 2.0 },
-      { "damage": 16, "cooldownSec": 1.2, "count": 1, "pierce": 2, "speed": 420, "radius": 8, "lifeSec": 2.0 },
-      { "damage": 16, "cooldownSec": 1.2, "count": 2, "pierce": 3, "speed": 420, "radius": 8, "lifeSec": 2.0 },
-      { "damage": 20, "cooldownSec": 1.02, "count": 2, "pierce": 4, "speed": 420, "radius": 8, "lifeSec": 2.0 },
-      { "damage": 20, "cooldownSec": 0.87, "count": 3, "pierce": 5, "speed": 420, "radius": 8, "lifeSec": 2.0 }
+      {
+        "damage": 12,
+        "cooldownSec": 1.2,
+        "count": 1,
+        "pierce": 2,
+        "speed": 420,
+        "radius": 8,
+        "lifeSec": 2.0
+      },
+      {
+        "damage": 16,
+        "cooldownSec": 1.2,
+        "count": 1,
+        "pierce": 2,
+        "speed": 420,
+        "radius": 8,
+        "lifeSec": 2.0
+      },
+      {
+        "damage": 16,
+        "cooldownSec": 1.2,
+        "count": 2,
+        "pierce": 3,
+        "speed": 420,
+        "radius": 8,
+        "lifeSec": 2.0
+      },
+      {
+        "damage": 20,
+        "cooldownSec": 1.02,
+        "count": 2,
+        "pierce": 4,
+        "speed": 420,
+        "radius": 8,
+        "lifeSec": 2.0
+      },
+      {
+        "damage": 20,
+        "cooldownSec": 0.87,
+        "count": 3,
+        "pierce": 5,
+        "speed": 420,
+        "radius": 8,
+        "lifeSec": 2.0
+      }
     ]
   },
   "thunder": {
     "name": "落雷",
     "levels": [
-      { "damage": 25, "cooldownSec": 2.5, "strikes": 1, "blastRadius": 60 },
-      { "damage": 33, "cooldownSec": 2.5, "strikes": 1, "blastRadius": 60 },
-      { "damage": 33, "cooldownSec": 2.5, "strikes": 2, "blastRadius": 65 },
-      { "damage": 42, "cooldownSec": 2.13, "strikes": 3, "blastRadius": 70 },
-      { "damage": 42, "cooldownSec": 1.81, "strikes": 4, "blastRadius": 75 }
+      {
+        "damage": 25,
+        "cooldownSec": 2.5,
+        "strikes": 1,
+        "blastRadius": 60
+      },
+      {
+        "damage": 33,
+        "cooldownSec": 2.5,
+        "strikes": 1,
+        "blastRadius": 60
+      },
+      {
+        "damage": 33,
+        "cooldownSec": 2.5,
+        "strikes": 2,
+        "blastRadius": 65
+      },
+      {
+        "damage": 42,
+        "cooldownSec": 2.13,
+        "strikes": 3,
+        "blastRadius": 70
+      },
+      {
+        "damage": 42,
+        "cooldownSec": 1.81,
+        "strikes": 4,
+        "blastRadius": 75
+      }
     ]
   },
   "flame": {
     "name": "火炎",
     "levels": [
-      { "damagePerTick": 5, "tickSec": 0.2, "range": 140, "arcDeg": 45 },
-      { "damagePerTick": 6.5, "tickSec": 0.2, "range": 150, "arcDeg": 50 },
-      { "damagePerTick": 6.5, "tickSec": 0.2, "range": 160, "arcDeg": 60 },
-      { "damagePerTick": 8.5, "tickSec": 0.2, "range": 175, "arcDeg": 70 },
-      { "damagePerTick": 8.5, "tickSec": 0.2, "range": 190, "arcDeg": 80 }
+      {
+        "damagePerTick": 5,
+        "tickSec": 0.2,
+        "range": 140,
+        "arcDeg": 45
+      },
+      {
+        "damagePerTick": 6.5,
+        "tickSec": 0.2,
+        "range": 150,
+        "arcDeg": 50
+      },
+      {
+        "damagePerTick": 6.5,
+        "tickSec": 0.2,
+        "range": 160,
+        "arcDeg": 60
+      },
+      {
+        "damagePerTick": 8.5,
+        "tickSec": 0.2,
+        "range": 175,
+        "arcDeg": 70
+      },
+      {
+        "damagePerTick": 8.5,
+        "tickSec": 0.2,
+        "range": 190,
+        "arcDeg": 80
+      }
+    ]
+  },
+  "spear": {
+    "name": "スピア",
+    "unlockStage": "stage2",
+    "levels": [
+      {
+        "damage": 16,
+        "cooldownSec": 1.1,
+        "count": 1,
+        "pierce": 4,
+        "speed": 520,
+        "radius": 7,
+        "lifeSec": 1.5
+      },
+      {
+        "damage": 21,
+        "cooldownSec": 1.1,
+        "count": 1,
+        "pierce": 4,
+        "speed": 520,
+        "radius": 7,
+        "lifeSec": 1.5
+      },
+      {
+        "damage": 21,
+        "cooldownSec": 1.1,
+        "count": 2,
+        "pierce": 5,
+        "speed": 520,
+        "radius": 7,
+        "lifeSec": 1.5
+      },
+      {
+        "damage": 27,
+        "cooldownSec": 0.94,
+        "count": 2,
+        "pierce": 5,
+        "speed": 520,
+        "radius": 7,
+        "lifeSec": 1.5
+      },
+      {
+        "damage": 27,
+        "cooldownSec": 0.8,
+        "count": 3,
+        "pierce": 6,
+        "speed": 520,
+        "radius": 7,
+        "lifeSec": 1.5
+      }
+    ]
+  },
+  "axe": {
+    "name": "投斧",
+    "unlockStage": "stage2",
+    "levels": [
+      {
+        "damage": 30,
+        "cooldownSec": 1.6,
+        "count": 1,
+        "pierce": 3,
+        "upSpeed": 520,
+        "sideSpeed": 170,
+        "gravity": 900,
+        "radius": 10,
+        "lifeSec": 2.2
+      },
+      {
+        "damage": 39,
+        "cooldownSec": 1.6,
+        "count": 1,
+        "pierce": 3,
+        "upSpeed": 520,
+        "sideSpeed": 170,
+        "gravity": 900,
+        "radius": 10,
+        "lifeSec": 2.2
+      },
+      {
+        "damage": 39,
+        "cooldownSec": 1.6,
+        "count": 2,
+        "pierce": 3,
+        "upSpeed": 520,
+        "sideSpeed": 170,
+        "gravity": 900,
+        "radius": 10,
+        "lifeSec": 2.2
+      },
+      {
+        "damage": 51,
+        "cooldownSec": 1.36,
+        "count": 2,
+        "pierce": 4,
+        "upSpeed": 520,
+        "sideSpeed": 170,
+        "gravity": 900,
+        "radius": 10,
+        "lifeSec": 2.2
+      },
+      {
+        "damage": 51,
+        "cooldownSec": 1.16,
+        "count": 3,
+        "pierce": 4,
+        "upSpeed": 520,
+        "sideSpeed": 170,
+        "gravity": 900,
+        "radius": 10,
+        "lifeSec": 2.2
+      }
+    ]
+  },
+  "mine": {
+    "name": "地雷",
+    "unlockStage": "stage3",
+    "levels": [
+      {
+        "damage": 45,
+        "cooldownSec": 2.2,
+        "count": 2,
+        "triggerRadius": 26,
+        "blastRadius": 90,
+        "armSec": 0.4,
+        "lifeSec": 10
+      },
+      {
+        "damage": 59,
+        "cooldownSec": 2.2,
+        "count": 2,
+        "triggerRadius": 26,
+        "blastRadius": 90,
+        "armSec": 0.4,
+        "lifeSec": 10
+      },
+      {
+        "damage": 59,
+        "cooldownSec": 2.2,
+        "count": 3,
+        "triggerRadius": 26,
+        "blastRadius": 95,
+        "armSec": 0.4,
+        "lifeSec": 10
+      },
+      {
+        "damage": 77,
+        "cooldownSec": 1.87,
+        "count": 3,
+        "triggerRadius": 26,
+        "blastRadius": 100,
+        "armSec": 0.4,
+        "lifeSec": 10
+      },
+      {
+        "damage": 77,
+        "cooldownSec": 1.59,
+        "count": 4,
+        "triggerRadius": 26,
+        "blastRadius": 105,
+        "armSec": 0.4,
+        "lifeSec": 10
+      }
+    ]
+  },
+  "drone": {
+    "name": "ドローン",
+    "unlockStage": "stage3",
+    "levels": [
+      {
+        "damage": 10,
+        "cooldownSec": 0.8,
+        "count": 1,
+        "speed": 500,
+        "radius": 5,
+        "lifeSec": 1.4
+      },
+      {
+        "damage": 13,
+        "cooldownSec": 0.8,
+        "count": 1,
+        "speed": 500,
+        "radius": 5,
+        "lifeSec": 1.4
+      },
+      {
+        "damage": 13,
+        "cooldownSec": 0.8,
+        "count": 2,
+        "speed": 500,
+        "radius": 5,
+        "lifeSec": 1.4
+      },
+      {
+        "damage": 17,
+        "cooldownSec": 0.68,
+        "count": 2,
+        "speed": 500,
+        "radius": 5,
+        "lifeSec": 1.4
+      },
+      {
+        "damage": 17,
+        "cooldownSec": 0.58,
+        "count": 3,
+        "speed": 500,
+        "radius": 5,
+        "lifeSec": 1.4
+      }
     ]
   }
 }

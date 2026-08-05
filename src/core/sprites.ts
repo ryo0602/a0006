@@ -12,7 +12,17 @@ import bgStage3Url from '../assets/bg_stage3.png';
  * （src/assets/characters.png）に詰めてあり、並び順は ORDER と一致させてビルドしている。
  * §15 の「スプライトは1枚にまとめる」方針に沿い、個別 PNG は同梱しない。
  */
-const ORDER = ['maleAdventurer', 'robot', 'femaleAdventurer', 'zombie'] as const;
+const ORDER = [
+  'maleAdventurer',
+  'robot',
+  'femaleAdventurer',
+  'zombie',
+  // Phase 9 追加キャラ。現状は既存フレームの色相シフト版のプレースホルダ
+  // （本物の Kenney 素材に差し替える場合はこの3フレームを上書きするだけでよい）
+  'gamblerToon',
+  'paladinToon',
+  'engineerToon',
+] as const;
 
 export type CharacterSprite = (typeof ORDER)[number];
 
@@ -21,6 +31,9 @@ export const PLAYER_SPRITES: Record<string, CharacterSprite> = {
   runner: 'maleAdventurer',
   tank: 'robot',
   sniper: 'femaleAdventurer',
+  gambler: 'gamblerToon',
+  paladin: 'paladinToon',
+  engineer: 'engineerToon',
 };
 
 const FRAME_W = 96;

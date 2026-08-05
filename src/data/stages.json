@@ -1,35 +1,35 @@
 {
   "difficulty": {
-    "hpPerMin": 0.18,
-    "damagePerMin": 0.06
+    "hpPerMin": 0.22,
+    "damagePerMin": 0.08
   },
   "stages": [
     {
       "id": "stage1",
       "name": "市街地",
-      "durationSec": 900,
-      "bossAtSec": 840,
-      "afterBossPerSec": 4,
+      "durationSec": 300,
+      "bossAtSec": 270,
+      "afterBossPerSec": 1.5,
       "difficultyMul": 1.0,
       "waves": [
         {
-          "untilSec": 120,
+          "untilSec": 40,
           "perSec": 2,
           "mix": {
             "walker": 1.0
           }
         },
         {
-          "untilSec": 300,
-          "perSec": 4,
+          "untilSec": 90,
+          "perSec": 3.5,
           "mix": {
             "walker": 0.7,
             "runner_z": 0.3
           }
         },
         {
-          "untilSec": 480,
-          "perSec": 6,
+          "untilSec": 140,
+          "perSec": 5,
           "mix": {
             "walker": 0.5,
             "runner_z": 0.3,
@@ -37,8 +37,8 @@
           }
         },
         {
-          "untilSec": 660,
-          "perSec": 8,
+          "untilSec": 210,
+          "perSec": 6.5,
           "mix": {
             "walker": 0.4,
             "runner_z": 0.3,
@@ -47,8 +47,8 @@
           }
         },
         {
-          "untilSec": 840,
-          "perSec": 11,
+          "untilSec": 270,
+          "perSec": 8,
           "mix": {
             "walker": 0.3,
             "runner_z": 0.3,
@@ -62,13 +62,13 @@
     {
       "id": "stage2",
       "name": "廃工場",
-      "durationSec": 900,
-      "bossAtSec": 840,
-      "afterBossPerSec": 4,
+      "durationSec": 300,
+      "bossAtSec": 270,
+      "afterBossPerSec": 1.5,
       "difficultyMul": 1.4,
       "waves": [
         {
-          "untilSec": 120,
+          "untilSec": 40,
           "perSec": 2,
           "mix": {
             "walker": 0.8,
@@ -76,8 +76,8 @@
           }
         },
         {
-          "untilSec": 300,
-          "perSec": 4,
+          "untilSec": 90,
+          "perSec": 3.5,
           "mix": {
             "walker": 0.5,
             "runner_z": 0.2,
@@ -85,8 +85,8 @@
           }
         },
         {
-          "untilSec": 480,
-          "perSec": 6,
+          "untilSec": 140,
+          "perSec": 5,
           "mix": {
             "walker": 0.35,
             "runner_z": 0.25,
@@ -94,8 +94,8 @@
           }
         },
         {
-          "untilSec": 660,
-          "perSec": 8,
+          "untilSec": 210,
+          "perSec": 6.5,
           "mix": {
             "walker": 0.3,
             "runner_z": 0.2,
@@ -104,8 +104,8 @@
           }
         },
         {
-          "untilSec": 840,
-          "perSec": 11,
+          "untilSec": 270,
+          "perSec": 8,
           "mix": {
             "walker": 0.2,
             "runner_z": 0.25,
@@ -119,13 +119,13 @@
     {
       "id": "stage3",
       "name": "汚染区",
-      "durationSec": 900,
-      "bossAtSec": 840,
-      "afterBossPerSec": 5.2,
+      "durationSec": 300,
+      "bossAtSec": 270,
+      "afterBossPerSec": 2.0,
       "difficultyMul": 1.9,
       "waves": [
         {
-          "untilSec": 120,
+          "untilSec": 40,
           "perSec": 2.6,
           "mix": {
             "walker": 0.9,
@@ -133,8 +133,8 @@
           }
         },
         {
-          "untilSec": 300,
-          "perSec": 5.2,
+          "untilSec": 90,
+          "perSec": 4.6,
           "mix": {
             "walker": 0.55,
             "runner_z": 0.25,
@@ -142,8 +142,8 @@
           }
         },
         {
-          "untilSec": 480,
-          "perSec": 7.8,
+          "untilSec": 140,
+          "perSec": 6.5,
           "mix": {
             "walker": 0.4,
             "runner_z": 0.25,
@@ -152,8 +152,8 @@
           }
         },
         {
-          "untilSec": 660,
-          "perSec": 10.4,
+          "untilSec": 210,
+          "perSec": 8.5,
           "mix": {
             "walker": 0.3,
             "runner_z": 0.25,
@@ -162,8 +162,8 @@
           }
         },
         {
-          "untilSec": 840,
-          "perSec": 14.3,
+          "untilSec": 270,
+          "perSec": 10.4,
           "mix": {
             "walker": 0.25,
             "runner_z": 0.25,
@@ -174,5 +174,16 @@
       ],
       "coinMultiplier": 2.4
     }
-  ]
+  ],
+  "danger": {
+    "maxLevel": 5,
+    "hpMulPerLevel": 0.25,
+    "damageMulPerLevel": 0.15,
+    "eliteWeightPerLevel": 0.15,
+    "coinMulPerLevel": 0.35,
+    "eliteTypes": [
+      "tank_z",
+      "spitter"
+    ]
+  }
 }
