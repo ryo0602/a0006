@@ -110,6 +110,7 @@ function neutralSetup(): RunSetup {
     unlockedWeapons: [...DEFAULT_WEAPONS],
     dangerLevel: 0,
     shieldStart: false,
+    challenge: null,
   };
 }
 
@@ -178,6 +179,14 @@ export class PlayScene implements Scene {
   private dangerHpMul = 1;
   private dangerCoinMul = 1;
 
+  // §13 Phase 10: 実績用のイベント駆動カウンタ（毎フレームのポーリングはしない）
+  private runCrits = 0;
+  private runKillsElite = 0;
+  private rerollsUsed = 0;
+  private healPicks = 0;
+  /** ボス出現時の経過秒（討伐時間の算出用。-1 = 未出現） */
+  private bossSpawnAtSec = -1;
+
   /** ボスHPバー用の参照（§16）。出現時にキャッシュし、撃破で null に戻す */
   private bossRef: Enemy | null = null;
   private bossMaxHp = 1;
@@ -207,8 +216,9 @@ export class PlayScene implements Scene {
   /** DEV: ?enemies=N の一括スポーンを最初の update まで遅延させる（カメラ確定後） */
   private pendingBurst = 0;
 
-  /** 敵死亡時の演出（§16: パーティクル4個を放射）。sweepDeaths から呼ばれる */
+  /** 敵死亡時の演出（§16）と種別キルの記録（§13 Phase 10）。sweepDeaths から呼ばれる */
   private readonly spawnDeathParticles = (e: Enemy): void => {
+    if (stagesData.danger.eliteTypes.includes(e.typeId)) this.runKillsElite++;
     for (let i = 0; i < PARTICLES_PER_DEATH; i++) {
       const p = this.particlePool.acquire();
       if (p === null) return;
@@ -344,10 +354,14 @@ export class PlayScene implements Scene {
       areaMul: 1,
       spawnProjectile: () => this.spawnProjectile(),
       // クリティカル（§9 Phase 8）はダメージ適用の一元窓口で判定する
-      applyDamage: (enemy, dmg) =>
-        enemy.takeDamage(
-          this.critChance > 0 && this.random.next() < this.critChance ? dmg * 2 : dmg,
-        ),
+      applyDamage: (enemy, dmg) => {
+        if (this.critChance > 0 && this.random.next() < this.critChance) {
+          this.runCrits++;
+          enemy.takeDamage(dmg * 2);
+        } else {
+          enemy.takeDamage(dmg);
+        }
+      },
     };
 
     this.joystick = new Joystick(input);
@@ -400,6 +414,8 @@ export class PlayScene implements Scene {
     this.dangerHpMul = 1 + stagesData.danger.hpMulPerLevel * setup.dangerLevel;
     this.dangerCoinMul = 1 + stagesData.danger.coinMulPerLevel * setup.dangerLevel;
     this.spawn.setDanger(setup.dangerLevel);
+    // チャレンジ修飾子（§13 Phase 10）。基準バランスに触れない実行時オーバーレイ
+    this.spawn.setChallenge(setup.challenge?.def ?? null);
     this.spawn.setStage(setup.stage);
     // ステージ背景（§12: アスファルト / 鉄板 / 汚泥）
     this.bg.texture = stageBackgroundTexture(setup.stage.id);
@@ -457,11 +473,19 @@ export class PlayScene implements Scene {
     this.player.hp = this.player.maxHp;
     // paladin（§7 Phase 9）: シールドを開始時からチャージ済みで持つ
     if (this.setup.shieldStart) this.player.shieldReady = true;
+    // ガラスの体（§13 Phase 10）: 開始HPをメタ強化適用後に上書きする
+    const hpOverride = this.setup.challenge?.def.playerHp;
+    if (hpOverride !== undefined) this.player.hp = hpOverride;
     this.modal.hide();
     this.pauseMenu.hide();
     this.paused = false;
     this.finished = false;
     this.elapsedSec = 0;
+    this.runCrits = 0;
+    this.runKillsElite = 0;
+    this.rerollsUsed = 0;
+    this.healPicks = 0;
+    this.bossSpawnAtSec = -1;
     this.bossRef = null;
     this.hud.setBossHp(null);
     this.camera.follow(0, 0);
@@ -541,6 +565,7 @@ export class PlayScene implements Scene {
           this.bossMaxHp = enemiesData.boss.hp * this.stage.difficultyMul * this.dangerHpMul;
           // ボス出現の演出（§16: シェイクはボス出現と爆弾のみ）
           this.camera.shake(SHAKE_BOSS_AMP, SHAKE_BOSS_SEC);
+          this.bossSpawnAtSec = this.elapsedSec;
           // §12: ボスアリーナ。溜まった通常敵を全消滅させる（ドロップ・キル数なし）。
           // 5分設計ではボス出現時点の残存数が多く、最寄り優先の武器がボスに
           // 一切当たらなくなることが実測で確認されたための措置
@@ -567,6 +592,20 @@ export class PlayScene implements Scene {
   private finish(cleared: boolean): void {
     if (this.finished) return;
     this.finished = true;
+
+    // §13 Phase 10: 実績判定用のランカウンタを束ねる（判定自体は Game 側で1回だけ行う）
+    let weaponsMaxed = 0;
+    const evolvedIds: string[] = [];
+    for (const w of this.weapons.list) {
+      // 進化武器は Lv5 を経由しているので「Lv5到達」に含める
+      if (w.evolved) {
+        weaponsMaxed++;
+        evolvedIds.push(w.id);
+      } else if (w.level >= 5) {
+        weaponsMaxed++;
+      }
+    }
+
     this.events.onFinished({
       cleared,
       timeSec: Math.min(this.elapsedSec, this.stage.bossAtSec),
@@ -574,6 +613,23 @@ export class PlayScene implements Scene {
       level: this.levelSystem.level,
       stageName: this.stage.name,
       coins: this.coinsEarned(cleared),
+      dangerLevel: this.setup.dangerLevel,
+      characterId: this.setup.characterId,
+      challengeId: this.setup.challenge?.id ?? null,
+      runStats: {
+        hitsTaken: this.damage.hitsTaken,
+        shieldBlocks: this.damage.shieldBlocks,
+        crits: this.runCrits,
+        gemsCollected: this.pickup.gemsCollected,
+        rerollsUsed: this.rerollsUsed,
+        healPicks: this.healPicks,
+        killsElite: this.runKillsElite,
+        bossKillSec:
+          cleared && this.bossSpawnAtSec >= 0 ? this.elapsedSec - this.bossSpawnAtSec : 0,
+        weaponsOwned: this.weapons.count,
+        weaponsMaxed,
+        evolvedIds,
+      },
     });
   }
 
@@ -727,6 +783,7 @@ export class PlayScene implements Scene {
   private reroll(): void {
     if (this.levelSystem.rerolls <= 0 || !this.paused) return;
     this.levelSystem.rerolls--;
+    this.rerollsUsed++;
     // 進化候補は条件から決定的に再現されるため、リロールしても同じ枠に残る（§10 の優先度）
     this.currentChoices = this.generateChoices();
     this.modal.show(
@@ -753,6 +810,7 @@ export class PlayScene implements Scene {
         this.applyPassives();
         break;
       case 'heal':
+        this.healPicks++;
         this.player.hp = Math.min(
           this.player.maxHp,
           this.player.hp + this.player.maxHp * levelingData.healRatio,
@@ -794,7 +852,7 @@ export class PlayScene implements Scene {
       cands.push({ kind: 'weaponUp', weaponId: id });
       weights.push(levelingData.weaponUpWeight);
     }
-    if (this.weapons.count < MAX_WEAPONS) {
+    if (this.weapons.count < MAX_WEAPONS && this.setup.challenge?.def.weaponNewDisabled !== true) {
       // 未所持武器は所持数が増えるほど出にくくする（§13 Phase 8: ビルドの収束）
       const newWeight =
         levelingData.newWeaponWeightByOwned[

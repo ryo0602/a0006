@@ -3,11 +3,13 @@ import charactersData from '../data/characters.json';
 import metaUpgradesData from '../data/metaUpgrades.json';
 import stagesData from '../data/stages.json';
 import weaponsData from '../data/weapons.json';
+import { AchievementScene, AchievementView } from '../scenes/AchievementScene';
 import { PlayScene } from '../scenes/PlayScene';
 import { ResultScene } from '../scenes/ResultScene';
 import { StageSelectScene, StageSelectView } from '../scenes/StageSelectScene';
 import { TitleScene } from '../scenes/TitleScene';
 import { UpgradeScene, UpgradeView, META_IDS } from '../scenes/UpgradeScene';
+import { AchievementSystem, ACHIEVEMENTS, CHALLENGES, CHALLENGE_IDS } from '../systems/AchievementSystem';
 import { WEAPON_IDS } from '../systems/WeaponSystem';
 import { SaveManager } from '../save/SaveManager';
 import { GameLoop } from './GameLoop';
@@ -29,12 +31,14 @@ export class Game {
   private readonly input = new InputManager();
   private readonly scenes = new SceneManager();
   private readonly save = new SaveManager();
+  private readonly achievements = new AchievementSystem();
 
   private title!: TitleScene;
   private stageSelect!: StageSelectScene;
   private upgrade!: UpgradeScene;
   private play!: PlayScene;
   private result!: ResultScene;
+  private achievementScene!: AchievementScene;
 
   private currentStageIndex = 0;
   private selectedCharacter = this.save.data.lastCharacter;
@@ -74,10 +78,15 @@ export class Game {
       onSelectCharacter: (id) => this.onSelectCharacter(id),
       onChangeDanger: (delta) => this.onChangeDanger(delta),
       onOpenUpgrade: () => this.toUpgrade(),
+      onOpenAchievements: () => this.toAchievements(),
     });
     this.upgrade = new UpgradeScene({
       onPurchase: (id) => this.onPurchase(id),
       onBack: () => this.toStageSelect(),
+    });
+    this.achievementScene = new AchievementScene({
+      onBack: () => this.toStageSelect(),
+      onStartChallenge: (id) => this.startChallenge(id),
     });
     this.result = new ResultScene(() => this.toStageSelect());
 
@@ -111,24 +120,20 @@ export class Game {
   private onFinished(result: PlayResult): void {
     const data = this.save.data;
     data.coins += result.coins;
-    data.stats.totalKills += result.kills;
-    data.stats.totalPlaytimeSec += result.timeSec;
-    data.stats.bestTimeSec = Math.max(data.stats.bestTimeSec, result.timeSec);
 
-    // 危険度の解放（§12 Phase 9）: 危険度 n でクリアすると n+1 が解放される
-    if (result.cleared) {
+    // クリアによる解放系。チャレンジはルールが違うため進行（ステージ・危険度・キャラ解放）に
+    // 影響させない（§13 Phase 10）
+    if (result.cleared && result.challengeId === null) {
+      // 危険度の解放（§12 Phase 9）: 危険度 n でクリアすると n+1 が解放される
       data.dangerUnlocked = Math.max(
         data.dangerUnlocked,
         Math.min(stagesData.danger.maxLevel, this.selectedDanger + 1),
       );
-    }
-
-    if (result.cleared) {
       const stageId = stagesData.stages[this.currentStageIndex].id;
       if (!data.clearedStages.includes(stageId)) {
         data.clearedStages.push(stageId);
       }
-      // ステージクリア条件のキャラ解放（tank。§7）
+      // ステージクリア条件のキャラ解放（§7）
       for (const id of CHARACTER_IDS) {
         const unlock = CHARACTERS[id].unlock;
         if (
@@ -141,9 +146,14 @@ export class Game {
         }
       }
     }
+
+    // §14 Phase 10: 累計更新と実績・チャレンジ判定（解放系を反映した後に1回だけ）
+    const { notices, rewardCoins } = this.achievements.applyResult(data, result);
+    data.coins += rewardCoins;
+
     this.save.save();
 
-    this.result.show(result);
+    this.result.show(result, notices);
     this.scenes.change(this.result);
   }
 
@@ -209,6 +219,52 @@ export class Game {
   private toUpgrade(): void {
     this.upgrade.refresh(this.buildUpgradeView());
     this.scenes.change(this.upgrade);
+  }
+
+  // ---- 実績・チャレンジ（§14 / §13 Phase 10） ----
+
+  private toAchievements(): void {
+    this.achievementScene.refresh(this.buildAchievementView());
+    this.scenes.change(this.achievementScene);
+  }
+
+  private buildAchievementView(): AchievementView {
+    const data = this.save.data;
+    return {
+      stats: {
+        totalKills: data.stats.totalKills,
+        totalClears: data.stats.totalClears,
+        totalRuns: data.stats.totalRuns,
+        playtimeSec: data.stats.totalPlaytimeSec,
+        bestBossKillSec: data.stats.bestBossKillSec,
+      },
+      rows: ACHIEVEMENTS.map((def) => ({
+        def,
+        achieved: data.achievements.includes(def.id),
+        progress: Math.min(def.min, this.achievements.factValue(data, def.fact)),
+      })),
+      challenges: CHALLENGE_IDS.map((id) => ({
+        id,
+        def: CHALLENGES[id],
+        cleared: data.challengesCleared.includes(id),
+      })),
+      // チャレンジはステージ3クリアで解放（§13 Phase 10）
+      challengesUnlocked: data.clearedStages.includes('stage3'),
+    };
+  }
+
+  /** チャレンジ開始（§13 Phase 10）。危険度は 0 固定 */
+  private startChallenge(id: string): void {
+    const def = CHALLENGES[id];
+    if (def === undefined || !this.save.data.clearedStages.includes('stage3')) return;
+    const stageIndex = stagesData.stages.findIndex((s) => s.id === def.stage);
+    if (stageIndex < 0) return;
+    this.currentStageIndex = stageIndex;
+    const setup = this.buildSetup(stagesData.stages[stageIndex]);
+    setup.dangerLevel = 0;
+    setup.challenge = { id, def };
+    this.play.startStage(setup);
+    this.scenes.change(this.play);
   }
 
   /** ステージ解放数はセーブの clearedStages から導出する（§12 / §14） */
@@ -304,6 +360,7 @@ export class Game {
       unlockedWeapons,
       dangerLevel: this.selectedDanger,
       shieldStart: char.shieldStart ?? false,
+      challenge: null,
     };
   }
 }

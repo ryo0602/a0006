@@ -29,6 +29,9 @@ export class PickupSystem {
   /** マグネットパッシブの補正。取得時に PlayScene が更新する */
   pickupRangeMul = 1;
 
+  /** このプレイで回収したジェム数（§13 Phase 10。上限溢れの自動回収も含む） */
+  gemsCollected = 0;
+
   private seqCounter = 0;
 
   constructor(
@@ -58,6 +61,7 @@ export class PickupSystem {
       if (oldestIdx < 0) return;
       const oldest = this.gems[oldestIdx];
       this.levelSystem.addExp(oldest.exp);
+      this.gemsCollected++;
       oldest.deactivate();
       this.gems[oldestIdx] = this.gems[this.gems.length - 1];
       this.gems.pop();
@@ -114,6 +118,7 @@ export class PickupSystem {
 
       if (distSq < collectSq) {
         this.levelSystem.addExp(g.exp);
+        this.gemsCollected++;
         g.deactivate();
         this.gems[i] = this.gems[this.gems.length - 1];
         this.gems.pop();
@@ -140,6 +145,7 @@ export class PickupSystem {
 
   reset(): void {
     this.pickupRangeMul = 1;
+    this.gemsCollected = 0;
     this.seqCounter = 0;
   }
 }

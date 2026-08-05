@@ -37,10 +37,24 @@ function defaultSave(): SaveData {
     unlockedCharacters: ['runner'],
     clearedStages: [],
     metaUpgrades: {},
-    stats: { totalKills: 0, totalPlaytimeSec: 0, bestTimeSec: 0 },
+    stats: {
+      totalKills: 0,
+      totalPlaytimeSec: 0,
+      bestTimeSec: 0,
+      totalClears: 0,
+      totalRuns: 0,
+      killsElite: 0,
+      crits: 0,
+      shieldBlocks: 0,
+      bestBossKillSec: 0,
+      bestDangerCleared: -1,
+    },
     lastCharacter: 'runner',
     dangerUnlocked: 0,
     lastDanger: 0,
+    achievements: [],
+    challengesCleared: [],
+    records: { clearedCharacters: [], evolutionsSeen: [] },
   };
 }
 
@@ -98,15 +112,32 @@ function normalize(raw: Record<string, unknown>): SaveData {
 
   if (isRecord(raw.stats)) {
     const s = raw.stats;
-    if (typeof s.totalKills === 'number' && Number.isFinite(s.totalKills)) {
-      out.stats.totalKills = Math.max(0, Math.floor(s.totalKills));
-    }
-    if (typeof s.totalPlaytimeSec === 'number' && Number.isFinite(s.totalPlaytimeSec)) {
-      out.stats.totalPlaytimeSec = Math.max(0, s.totalPlaytimeSec);
-    }
-    if (typeof s.bestTimeSec === 'number' && Number.isFinite(s.bestTimeSec)) {
-      out.stats.bestTimeSec = Math.max(0, s.bestTimeSec);
-    }
+    const num = (key: keyof typeof out.stats, floor = true, min = 0): void => {
+      const v = s[key];
+      if (typeof v === 'number' && Number.isFinite(v)) {
+        out.stats[key] = Math.max(min, floor ? Math.floor(v) : v);
+      }
+    };
+    num('totalKills');
+    num('totalPlaytimeSec', false);
+    num('bestTimeSec', false);
+    num('totalClears');
+    num('totalRuns');
+    num('killsElite');
+    num('crits');
+    num('shieldBlocks');
+    num('bestBossKillSec', false);
+    num('bestDangerCleared', true, -1);
+  }
+
+  // 実績・チャレンジ・図鑑（§14 Phase 10）。既知の形の文字列だけ通す
+  const idList = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+  out.achievements = [...new Set(idList(raw.achievements))];
+  out.challengesCleared = [...new Set(idList(raw.challengesCleared))];
+  if (isRecord(raw.records)) {
+    out.records.clearedCharacters = [...new Set(idList(raw.records.clearedCharacters))];
+    out.records.evolutionsSeen = [...new Set(idList(raw.records.evolutionsSeen))];
   }
 
   if (typeof raw.lastCharacter === 'string' && out.unlockedCharacters.includes(raw.lastCharacter)) {

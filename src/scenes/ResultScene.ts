@@ -1,5 +1,6 @@
 import { Container, Graphics, Text } from 'pixi.js';
 import { COLORS, FONT_MONO } from '../ui/theme';
+import type { UnlockNotice } from '../systems/AchievementSystem';
 import type { PlayResult, Scene } from '../types';
 
 /**
@@ -13,6 +14,7 @@ export class ResultScene implements Scene {
   private readonly title: Text;
   private readonly stats: Text;
   private readonly coinText: Text;
+  private readonly noticeText: Text;
   private readonly hint: Text;
 
   constructor(onContinue: () => void) {
@@ -52,13 +54,27 @@ export class ResultScene implements Scene {
     });
     this.coinText.anchor.set(0.5, 0);
 
+    // 新規達成の通知（§14 Phase 10）。プレイ中には出さず、ここに集約する（§16）
+    this.noticeText = new Text({
+      text: '',
+      style: {
+        fontFamily: 'sans-serif',
+        fontSize: 14,
+        fill: COLORS.toxic,
+        align: 'center',
+        lineHeight: 22,
+        padding: 4,
+      },
+    });
+    this.noticeText.anchor.set(0.5, 0);
+
     this.hint = new Text({
       text: 'タップ / Enter でステージ選択へ',
       style: { fontFamily: 'sans-serif', fontSize: 15, fill: COLORS.textDim },
     });
     this.hint.anchor.set(0.5);
 
-    this.container.addChild(this.bg, this.title, this.stats, this.coinText, this.hint);
+    this.container.addChild(this.bg, this.title, this.stats, this.coinText, this.noticeText, this.hint);
 
     window.addEventListener('keydown', (e) => {
       if (e.code !== 'Enter' && e.code !== 'NumpadEnter') return;
@@ -68,17 +84,30 @@ export class ResultScene implements Scene {
   }
 
   /** 遷移前に Game が呼ぶ。クリア時はタイトルを琥珀にして差別化する */
-  show(result: PlayResult): void {
-    this.title.text = result.cleared ? 'STAGE CLEAR' : 'GAME OVER';
+  show(result: PlayResult, notices: UnlockNotice[] = []): void {
+    // 末尾の NBSP は letterSpacing・絵文字混在時に最終文字が見切れる Text 幅計測問題の回避
+    // （通常スペースは trim されるため NBSP を使う）
+    this.title.text = result.cleared ? 'STAGE CLEAR\u00a0' : 'GAME OVER\u00a0';
     this.title.style.fill = result.cleared ? COLORS.amber : COLORS.textMain;
     const m = Math.floor(result.timeSec / 60);
     const s = Math.floor(result.timeSec % 60);
+    const dangerLine = result.dangerLevel > 0 ? `危険度 ${result.dangerLevel}\n` : '';
     this.stats.text =
       `${result.stageName}\n` +
+      dangerLine +
       `生存時間 ${m}:${s < 10 ? '0' : ''}${s}\n` +
       `キル数 ${result.kills}\n` +
       `到達 Lv.${result.level}`;
-    this.coinText.text = `💰 +${result.coins}`;
+    this.coinText.text = `💰 +${result.coins}\u00a0`;
+
+    // 新規達成は最大3件 + 「他n件」。報酬コインも添える（§14 Phase 10）
+    if (notices.length === 0) {
+      this.noticeText.text = '';
+    } else {
+      const lines = notices.slice(0, 3).map((n) => `🏆 ${n.name}  +${n.reward}`);
+      if (notices.length > 3) lines.push(`他 ${notices.length - 3} 件の達成`);
+      this.noticeText.text = lines.join('\n');
+    }
   }
 
   update(): void {}
@@ -88,10 +117,11 @@ export class ResultScene implements Scene {
   resize(width: number, height: number): void {
     this.bg.width = width;
     this.bg.height = height;
-    this.title.position.set(width / 2, height * 0.3);
-    this.stats.position.set(width / 2, height * 0.3 + 44);
-    this.coinText.position.set(width / 2, height * 0.3 + 156);
-    this.hint.position.set(width / 2, height * 0.3 + 210);
+    this.title.position.set(width / 2, height * 0.26);
+    this.stats.position.set(width / 2, height * 0.26 + 44);
+    this.coinText.position.set(width / 2, height * 0.26 + 178);
+    this.noticeText.position.set(width / 2, height * 0.26 + 210);
+    this.hint.position.set(width / 2, height * 0.26 + 300);
   }
 
   destroy(): void {

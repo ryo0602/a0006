@@ -53,6 +53,8 @@ export interface StageSelectHandlers {
   /** 危険度の増減（§12 Phase 9）。範囲クランプは Game が行う */
   onChangeDanger: (delta: number) => void;
   onOpenUpgrade: () => void;
+  /** 実績・チャレンジ画面（§14 Phase 10） */
+  onOpenAchievements: () => void;
 }
 
 /**
@@ -67,6 +69,7 @@ export class StageSelectScene implements Scene {
   private readonly cards: StageCard[] = [];
   private readonly coinText: Text;
   private readonly upgradeBtn: Container;
+  private readonly achieveBtn: Container;
 
   // 危険度セレクタ（§12 Phase 9）
   private readonly dangerRoot: Container;
@@ -144,6 +147,25 @@ export class StageSelectScene implements Scene {
     this.upgradeBtn.cursor = 'pointer';
     this.upgradeBtn.on('pointerdown', () => this.handlers.onOpenUpgrade());
 
+    // 実績ボタン（§14 Phase 10。R キー）
+    const achieveLabel = new Text({
+      text: '実績',
+      style: { fontFamily: 'sans-serif', fontSize: 14, fill: COLORS.textMain },
+    });
+    achieveLabel.anchor.set(0.5);
+    achieveLabel.position.set(-12, 0);
+    const achieveKey = new Sprite(promptTexture('R'));
+    achieveKey.scale.set(2);
+    achieveKey.anchor.set(0.5);
+    achieveKey.position.set(30, 0);
+    const achieveBg = createPanel(128, 36, COLORS.textDim);
+    achieveBg.position.set(-64, -18);
+    this.achieveBtn = new Container();
+    this.achieveBtn.addChild(achieveBg, achieveLabel, achieveKey);
+    this.achieveBtn.eventMode = 'static';
+    this.achieveBtn.cursor = 'pointer';
+    this.achieveBtn.on('pointerdown', () => this.handlers.onOpenAchievements());
+
     // キャラカルーセル本体
     this.charBg = createPanel(CHAR_W, CHAR_H, COLORS.line);
     this.charFrame = new Graphics();
@@ -216,6 +238,7 @@ export class StageSelectScene implements Scene {
       this.dangerRoot,
       this.coinText,
       this.upgradeBtn,
+      this.achieveBtn,
       this.charRoot,
       this.charPrevKey,
       this.charNextKey,
@@ -239,6 +262,7 @@ export class StageSelectScene implements Scene {
       else if (e.code === 'KeyE') this.browse(1);
       else if (e.code === 'KeyW') this.pickBrowsed();
       else if (e.code === 'KeyU') this.handlers.onOpenUpgrade();
+      else if (e.code === 'KeyR') this.handlers.onOpenAchievements();
     });
   }
 
@@ -400,6 +424,7 @@ export class StageSelectScene implements Scene {
       y += CHAR_H + 34;
       this.coinText.position.set(16, h - 28);
       this.upgradeBtn.position.set(w - 84, h - 28);
+      this.achieveBtn.position.set(w - 84, h - 74);
     } else {
       const totalW = CARD_W * this.cards.length + GAP * (this.cards.length - 1);
       this.heading.position.set(w / 2, h * 0.13);
@@ -431,6 +456,7 @@ export class StageSelectScene implements Scene {
       this.charPickHint.position.set((w - CHAR_W) / 2 + 8, cy + CHAR_H + 18);
       this.coinText.position.set((w - CHAR_W) / 2, cy + CHAR_H + 52);
       this.upgradeBtn.position.set((w + CHAR_W) / 2 - 64, cy + CHAR_H + 52);
+      this.achieveBtn.position.set((w + CHAR_W) / 2 - 220, cy + CHAR_H + 52);
     }
   }
 

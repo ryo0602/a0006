@@ -12,6 +12,11 @@ export class DamageSystem {
   /** このプレイでのキル数（リザルト表示用。§13 のコイン計算は Phase 5） */
   kills = 0;
 
+  /** 実際にHPが減った被弾回数（§13 Phase 10。シールドで防いだ分は数えない） */
+  hitsTaken = 0;
+  /** シールドで防いだ回数（§13 Phase 10） */
+  shieldBlocks = 0;
+
   constructor(
     private readonly onPlayerDeath: () => void,
     private readonly onBossDeath: () => void,
@@ -19,6 +24,8 @@ export class DamageSystem {
 
   reset(): void {
     this.kills = 0;
+    this.hitsTaken = 0;
+    this.shieldBlocks = 0;
   }
 
   update(dtSec: number, player: Player, contactDamage: number): void {
@@ -39,12 +46,14 @@ export class DamageSystem {
       player.shieldReady = false;
       player.invincibleTimer = PLAYER_STATS.invincibleSec;
       player.flashTimer = PLAYER_STATS.flashSec;
+      this.shieldBlocks++;
       return;
     }
 
     player.hp -= contactDamage;
     player.invincibleTimer = PLAYER_STATS.invincibleSec;
     player.flashTimer = PLAYER_STATS.flashSec;
+    this.hitsTaken++;
 
     if (player.hp <= 0) {
       player.hp = 0;

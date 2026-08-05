@@ -88,6 +88,10 @@ src/
     enemies.json
     stages.json
     metaUpgrades.json
+    leveling.json         # EXP・コイン・抽選重み（Phase 7〜8）
+    characters.json
+    achievements.json     # 実績定義（Phase 10）
+    challenges.json       # チャレンジ定義（Phase 10）
   ui/
     Hud.ts                # HP/EXPバー、タイマー、レベル
     LevelUpModal.ts       # 3択カード
@@ -147,7 +151,8 @@ render()
 ```
 Title
  └→ StageSelect ─→ Play ─→ Result ─→ StageSelect
-      └→ Upgrade（恒常強化）
+      ├→ Upgrade（恒常強化）
+      └→ Achievements（実績・チャレンジ。Phase 10。チャレンジ開始 → Play）
 ```
 
 - `Play` 中のレベルアップは **シーン遷移ではなくポーズ + モーダル**。ゲーム状態は保持したまま更新を止める。
@@ -252,7 +257,7 @@ Title
 | `vitality` | バイタリティ | 最大HP +15%、HP自動回復 +0.3/s | 5 |
 | `crit` | クリティカル | 5% の確率でダメージ2倍（Phase 8。判定はダメージ適用の一元窓口） | 5 |
 | `area` | エリア | 攻撃範囲 +8%（Phase 8。範囲攻撃の半径・射程に乗算: 落雷・火炎・地雷・メテオ等） | 5 |
-| `shield` | シールド | 被弾1回を無効化。チャージ間隔 30 - 4×Lv 秒（Phase 8。無効化時も無敵時間は発生） | 5 |
+| `shield` | シールド | 被弾1回を無効化。チャージ間隔 30 - 4×Lv 秒（Phase 8。無効化時も無敵時間は発生）。**シールドで防いだ分は実績上の「被弾」に数えない**（Phase 10） | 5 |
 
 - CD短縮は **合計 -50% を下限としてクランプ**すること。
 - パッシブに所持枠の上限はない（各Lv5が上限。Phase 8 で8種に増えても変更しない）。
@@ -400,14 +405,48 @@ Title
   "unlockedCharacters": ["runner"],
   "clearedStages": [],
   "metaUpgrades": { "meta_hp": 0, "meta_power": 0 },
-  "stats": { "totalKills": 0, "totalPlaytimeSec": 0, "bestTimeSec": 0 },
+  "stats": { "totalKills": 0, "totalPlaytimeSec": 0, "bestTimeSec": 0,
+             "totalClears": 0, "totalRuns": 0, "killsElite": 0, "crits": 0,
+             "shieldBlocks": 0, "bestBossKillSec": 0, "bestDangerCleared": -1 },
   "lastCharacter": "runner",
   "dangerUnlocked": 0,
-  "lastDanger": 0
+  "lastDanger": 0,
+  "achievements": [],
+  "challengesCleared": [],
+  "records": { "clearedCharacters": [], "evolutionsSeen": [] }
 }
 ```
-- `dangerUnlocked` / `lastDanger` は Phase 9 追加。`bestTimeSec` 等の記録は危険度を区別しない
-  （危険度別の記録は Phase 10 の実績で扱う）。
+- `dangerUnlocked` / `lastDanger` は Phase 9、`achievements` 以下と stats の拡張は Phase 10 追加。
+- **`bestTimeSec` は形骸化**（5分固定+タイマー停止でクリア時は常に270）。互換のため残置するが
+  表示には使わず、代わりに `bestBossKillSec`（最短ボス討伐秒）を記録・表示する（Phase 10）。
+
+### 実績（Phase 10）
+- 定義は `src/data/achievements.json`（30個）。各実績は「事実名（fact）と閾値」の宣言で、
+  判定は**リザルト確定時に1回だけ**行う（プレイ中のポーリング判定はしない）。
+- プレイ中は既存のイベント地点でのカウンタ加算のみ（被弾・シールド・クリティカル・
+  ジェム回収・リロール/回復ピック・種別キル・ボス討伐秒）。実績のためにゲームルールは変えない。
+- 報酬はコイン（1回きり。小50/中100/大200、総額4,100）。解放系（ステージ・危険度・キャラ）は
+  プレイ実績でしか進まないため、実績コインはメタ購入を早めるだけで動線を追い越さない。
+- 達成通知は**リザルト画面に集約**（最大3件+他n件。プレイ中のトーストは出さない。§16）。
+- 実績・チャレンジ画面はステージ選択から `R`。ページング表示（8行/頁）でスクロールを持ち込まない。
+
+### チャレンジ（Phase 10）
+- 定義は `src/data/challenges.json`（5本）。**ステージ+修飾子のプリセット**で、修飾子は
+  実行時オーバーレイ（湧き内訳の差し替え・レート係数・敵HP係数・開始HP上書き・武器取得禁止）。
+  基準バランスの数値には触れない。
+- ステージ3クリアで5本同時解放。**チャレンジ中の危険度は0固定**。メタ強化は有効
+  （ガラスの体の開始HP 1 はメタ適用後に上書き）。
+- 通常のコイン獲得式はそのまま機能し、初回クリアで追加報酬 300。
+- チャレンジのクリアは**進行に影響しない**（clearedStages・危険度解放・キャラ別クリア記録は
+  通常プレイのみ）。累計 stats と進化図鑑には算入する。
+
+| ID | 名前 | 対象 | 修飾子 |
+|---|---|---|---|
+| `rush` | ラッシュ | ステージ1 | walker 100% / 湧き×2 |
+| `heavy_march` | 重装行進 | ステージ2 | tank_z 70% / 湧き×0.6 |
+| `sniper_nest` | 狙撃手の巣 | ステージ3 | spitter 40% |
+| `glass` | ガラスの体 | ステージ1 | HP1 / 敵HP×0.5 |
+| `solo` | 一本槍 | ステージ2 | 武器の追加取得禁止 |
 - 読み込み時に `version` を検証し、不一致・破損時は **初期値にフォールバック**（クラッシュさせない）。
 - **ステージ解放状態の保存は Phase 5 のスコープ。** Phase 4 ではメモリ上でのみ管理し、リロードで初期化されてよい。
 
@@ -671,5 +710,12 @@ Vite + TS + PixiJS v8 のセットアップ、固定タイムステップのル�
 - [ ] 縦画面でセレクタ・カルーセルを含む全UIが収まる
 
 ### Phase 10: 実績・チャレンジ
-実績（累計キル・特定ビルド・ノーダメージ等）と、制約付きのチャレンジモードを追加する。
-報酬はコインまたは解放要素とし、localStorage セーブに載せる。
+実績30個（§14。宣言的定義+リザルト時一括判定）とチャレンジ5本（§14。修飾子プリセット）。
+実績画面（R キー・ページング）とリザルトへの達成通知を追加。
+`bestTimeSec` を `bestBossKillSec` に置き換え（旧フィールドは互換残置）。
+
+**受け入れ基準**
+- [ ] 実績が達成条件どおりに解放され、報酬コインが1回だけ付与される
+- [ ] プレイ中の毎フレーム判定が存在せず、通常プレイの性能に影響がない
+- [ ] チャレンジ5本が修飾子どおりに動作し、進行（ステージ・危険度解放）に影響しない
+- [ ] 旧セーブ（Phase 9 形式）が初期値補完で読み込める

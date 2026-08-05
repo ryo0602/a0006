@@ -1,0 +1,272 @@
+[
+  {
+    "id": "kill_1",
+    "name": "駆除業者",
+    "desc": "累計 1,000 体撃破",
+    "category": "累計",
+    "fact": "totalKills",
+    "min": 1000,
+    "reward": 50
+  },
+  {
+    "id": "kill_2",
+    "name": "殲滅者",
+    "desc": "累計 10,000 体撃破",
+    "category": "累計",
+    "fact": "totalKills",
+    "min": 10000,
+    "reward": 100
+  },
+  {
+    "id": "kill_3",
+    "name": "絶滅装置",
+    "desc": "累計 50,000 体撃破",
+    "category": "累計",
+    "fact": "totalKills",
+    "min": 50000,
+    "reward": 200
+  },
+  {
+    "id": "clear_1",
+    "name": "生還者",
+    "desc": "初クリア",
+    "category": "累計",
+    "fact": "totalClears",
+    "min": 1,
+    "reward": 50
+  },
+  {
+    "id": "clear_2",
+    "name": "常連",
+    "desc": "累計 10 回クリア",
+    "category": "累計",
+    "fact": "totalClears",
+    "min": 10,
+    "reward": 100
+  },
+  {
+    "id": "clear_3",
+    "name": "守護者",
+    "desc": "累計 30 回クリア",
+    "category": "累計",
+    "fact": "totalClears",
+    "min": 30,
+    "reward": 200
+  },
+  {
+    "id": "runs_20",
+    "name": "周回勢",
+    "desc": "累計 20 周プレイ",
+    "category": "累計",
+    "fact": "totalRuns",
+    "min": 20,
+    "reward": 100
+  },
+  {
+    "id": "time_1",
+    "name": "没頭",
+    "desc": "累計 1 時間プレイ",
+    "category": "累計",
+    "fact": "playtimeSec",
+    "min": 3600,
+    "reward": 100
+  },
+  {
+    "id": "elite_500",
+    "name": "エリートキラー",
+    "desc": "エリート(重装・遠距離)を累計 500 体撃破",
+    "category": "累計",
+    "fact": "killsElite",
+    "min": 500,
+    "reward": 100
+  },
+  {
+    "id": "crit_1000",
+    "name": "会心の嵐",
+    "desc": "クリティカル累計 1,000 回",
+    "category": "累計",
+    "fact": "crits",
+    "min": 1000,
+    "reward": 100
+  },
+  {
+    "id": "shield_10",
+    "name": "鉄壁の守り",
+    "desc": "シールドで累計 10 回防ぐ",
+    "category": "累計",
+    "fact": "shieldBlocks",
+    "min": 10,
+    "reward": 100
+  },
+  {
+    "id": "boss_fast",
+    "name": "電光石火",
+    "desc": "ボスを 30 秒以内に撃破",
+    "category": "1周",
+    "fact": "bossFast",
+    "min": 1,
+    "reward": 150
+  },
+  {
+    "id": "kills_700",
+    "name": "皆殺し",
+    "desc": "1周で 700 体撃破",
+    "category": "1周",
+    "fact": "runKills",
+    "min": 700,
+    "reward": 100
+  },
+  {
+    "id": "level_20",
+    "name": "満開",
+    "desc": "1周でレベル 20 到達",
+    "category": "1周",
+    "fact": "runLevel",
+    "min": 20,
+    "reward": 150
+  },
+  {
+    "id": "iron_guard",
+    "name": "鉄壁",
+    "desc": "被弾 5 回以内でクリア(シールドで防いだ分は数えない)",
+    "category": "1周",
+    "fact": "ironGuard",
+    "min": 1,
+    "reward": 200
+  },
+  {
+    "id": "minimalist",
+    "name": "一刀流",
+    "desc": "初期武器1本のみでクリア",
+    "category": "1周",
+    "fact": "minimalist",
+    "min": 1,
+    "reward": 200
+  },
+  {
+    "id": "weapon_master",
+    "name": "武器職人",
+    "desc": "1周で武器2種を Lv5 まで育てる(進化済みを含む)",
+    "category": "1周",
+    "fact": "runWeaponsMaxed",
+    "min": 2,
+    "reward": 150
+  },
+  {
+    "id": "evolve_first",
+    "name": "覚醒",
+    "desc": "初めて武器を進化させる",
+    "category": "1周",
+    "fact": "runEvolved",
+    "min": 1,
+    "reward": 100
+  },
+  {
+    "id": "evolve_double",
+    "name": "二重覚醒",
+    "desc": "1周で進化を2つ完成させる",
+    "category": "1周",
+    "fact": "runEvolved",
+    "min": 2,
+    "reward": 200
+  },
+  {
+    "id": "no_reroll",
+    "name": "一発勝負",
+    "desc": "リロール・小回復ピックを使わずクリア",
+    "category": "1周",
+    "fact": "noReroll",
+    "min": 1,
+    "reward": 150
+  },
+  {
+    "id": "gems_800",
+    "name": "収集家",
+    "desc": "1周でジェムを 800 個回収",
+    "category": "1周",
+    "fact": "runGems",
+    "min": 800,
+    "reward": 100
+  },
+  {
+    "id": "all_stages",
+    "name": "全域制圧",
+    "desc": "ステージ3をクリア",
+    "category": "図鑑",
+    "fact": "stage3Cleared",
+    "min": 1,
+    "reward": 100
+  },
+  {
+    "id": "all_chars",
+    "name": "全員集合",
+    "desc": "キャラクター6種を解放",
+    "category": "図鑑",
+    "fact": "charsUnlocked",
+    "min": 6,
+    "reward": 150
+  },
+  {
+    "id": "char_master",
+    "name": "適材適所",
+    "desc": "6キャラすべてでクリア",
+    "category": "図鑑",
+    "fact": "charsCleared",
+    "min": 6,
+    "reward": 200
+  },
+  {
+    "id": "evo_catalog",
+    "name": "進化図鑑",
+    "desc": "全9種の進化をそれぞれ1回以上完成させる",
+    "category": "図鑑",
+    "fact": "evosSeen",
+    "min": 9,
+    "reward": 200
+  },
+  {
+    "id": "meta_max",
+    "name": "完全体",
+    "desc": "メタ強化をすべて最大にする",
+    "category": "図鑑",
+    "fact": "metaMaxed",
+    "min": 1,
+    "reward": 200
+  },
+  {
+    "id": "rich_5000",
+    "name": "富豪",
+    "desc": "コインを 5,000 所持する",
+    "category": "図鑑",
+    "fact": "coinsHeld",
+    "min": 5000,
+    "reward": 100
+  },
+  {
+    "id": "danger_1",
+    "name": "火遊び",
+    "desc": "危険度1でクリア",
+    "category": "危険度",
+    "fact": "bestDanger",
+    "min": 1,
+    "reward": 100
+  },
+  {
+    "id": "danger_3",
+    "name": "綱渡り",
+    "desc": "危険度3でクリア",
+    "category": "危険度",
+    "fact": "bestDanger",
+    "min": 3,
+    "reward": 150
+  },
+  {
+    "id": "danger_5",
+    "name": "死線",
+    "desc": "危険度5でクリア",
+    "category": "危険度",
+    "fact": "bestDanger",
+    "min": 5,
+    "reward": 200
+  }
+]

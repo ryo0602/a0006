@@ -42,6 +42,9 @@ export class Enemy {
   /** ボスフラグ。押し出しの対象外・撃破でステージクリア（§11 / §12） */
   isBoss = false;
 
+  /** 種別ID（§11 Phase 10）。種別キルの実績トラッキングに使う */
+  typeId = '';
+
   /** spitter の距離維持AIと発射（§11）。keepDistance = 0 なら通常の直線追尾 */
   keepDistance = 0;
   fireCooldownSec = 0;
@@ -85,6 +88,7 @@ export class Enemy {
 
   /** プールから取り出した直後に呼ぶ。倍率は §12 の難易度倍率 */
   reset(id: string, stats: EnemyStats, x: number, y: number, hpMul: number, damageMul: number): void {
+    this.typeId = id;
     this.x = x;
     this.y = y;
     this.hp = stats.hp * hpMul;

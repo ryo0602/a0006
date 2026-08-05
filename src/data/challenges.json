@@ -1,0 +1,49 @@
+{
+  "rush": {
+    "name": "ラッシュ",
+    "desc": "歩行者のみ・湧き2倍のステージ1",
+    "stage": "stage1",
+    "reward": 300,
+    "mixOverride": {
+      "walker": 1.0
+    },
+    "rateMul": 2.0
+  },
+  "heavy_march": {
+    "name": "重装行進",
+    "desc": "重装だらけ・湧き0.6倍のステージ2",
+    "stage": "stage2",
+    "reward": 300,
+    "mixOverride": {
+      "tank_z": 0.7,
+      "walker": 0.3
+    },
+    "rateMul": 0.6
+  },
+  "sniper_nest": {
+    "name": "狙撃手の巣",
+    "desc": "遠距離4割のステージ3",
+    "stage": "stage3",
+    "reward": 300,
+    "mixOverride": {
+      "spitter": 0.4,
+      "walker": 0.35,
+      "runner_z": 0.25
+    }
+  },
+  "glass": {
+    "name": "ガラスの体",
+    "desc": "HP1・敵HP半減のステージ1",
+    "stage": "stage1",
+    "reward": 300,
+    "playerHp": 1,
+    "enemyHpMul": 0.5
+  },
+  "solo": {
+    "name": "一本槍",
+    "desc": "武器の追加取得禁止のステージ2",
+    "stage": "stage2",
+    "reward": 300,
+    "weaponNewDisabled": true
+  }
+}

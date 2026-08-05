@@ -5,7 +5,7 @@ import type { ObjectPool } from '../core/ObjectPool';
 import type { Random } from '../core/Random';
 import { ENEMY_LIMIT_PC } from '../core/device';
 import type { Enemy } from '../entities/Enemy';
-import type { DangerDef, DifficultyGrowth, EnemyStats, StageDef, WaveDef } from '../types';
+import type { ChallengeDef, DangerDef, DifficultyGrowth, EnemyStats, StageDef, WaveDef } from '../types';
 
 const ENEMY_STATS: Record<string, EnemyStats> = enemiesData;
 const DANGER: DangerDef = stagesData.danger;
@@ -45,6 +45,9 @@ export class SpawnSystem {
   private dangerDamageMul = 1;
   private dangerEliteMul = 1;
 
+  /** チャレンジ修飾子（§13 Phase 10）。null = 通常プレイ */
+  private challenge: ChallengeDef | null = null;
+
   constructor(
     stage: StageDef,
     private readonly growth: DifficultyGrowth,
@@ -68,10 +71,21 @@ export class SpawnSystem {
     this.dangerEliteMul = 1 + DANGER.eliteWeightPerLevel * level;
   }
 
+  /**
+   * チャレンジ修飾子（§13 Phase 10）。mixOverride は全ウェーブの内訳を差し替え、
+   * rateMul は湧きレートに乗算、enemyHpMul は敵HPに乗算する。setStage より先に呼ぶこと
+   */
+  setChallenge(challenge: ChallengeDef | null): void {
+    this.challenge = challenge;
+  }
+
   /** ステージ選択（§12）。ウェーブテーブルを差し替えて初期化する */
   setStage(stage: StageDef): void {
     this.stage = stage;
-    this.waves = stage.waves.map((w) => prepareWave(w, this.dangerEliteMul));
+    const mixOverride = this.challenge?.mixOverride;
+    this.waves = stage.waves.map((w) =>
+      prepareWave(mixOverride !== undefined ? { ...w, mix: mixOverride } : w, this.dangerEliteMul),
+    );
     this.reset();
   }
 
@@ -90,7 +104,9 @@ export class SpawnSystem {
     }
 
     const wave = this.currentWave();
-    const perSec = this.bossSpawned ? this.stage.afterBossPerSec : wave.perSec;
+    const perSec =
+      (this.bossSpawned ? this.stage.afterBossPerSec : wave.perSec) *
+      (this.challenge?.rateMul ?? 1);
     // 湧き数/秒を積算し、1を超えた分だけ湧かせる（端数を捨てずレートを正確に保つ）
     this.spawnAcc += perSec * dtSec;
     while (this.spawnAcc >= 1) {
@@ -123,9 +139,13 @@ export class SpawnSystem {
 
     const id = this.pickId(wave);
 
-    // §12: 時間係数 × ステージ係数 × 危険度係数。ボス出現後は時間成長を凍結する
+    // §12: 時間係数 × ステージ係数 × 危険度係数（× チャレンジ修飾子）。ボス出現後は時間成長を凍結する
     const minutes = Math.min(this.elapsedSec, this.stage.bossAtSec) / 60;
-    const hpMul = (1 + minutes * this.growth.hpPerMin) * this.stage.difficultyMul * this.dangerHpMul;
+    const hpMul =
+      (1 + minutes * this.growth.hpPerMin) *
+      this.stage.difficultyMul *
+      this.dangerHpMul *
+      (this.challenge?.enemyHpMul ?? 1);
     const damageMul =
       (1 + minutes * this.growth.damagePerMin) * this.stage.difficultyMul * this.dangerDamageMul;
 
