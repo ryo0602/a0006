@@ -24,5 +24,6 @@
     0.4,
     0.2
   ],
-  "weaponUpWeight": 1.3
+  "weaponUpWeight": 1.3,
+  "resumeDelaySec": 0.4
 }

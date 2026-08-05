@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import { isMobileWidth } from '../core/device';
+import { onInputModeChange } from '../core/inputMode';
 import { createPanel, PROMPT_DIGITS, promptTexture } from './prompts';
 import { COLORS, FONT_MONO } from './theme';
 import type { ChoiceView } from '../types';
@@ -15,6 +16,8 @@ interface Card {
   effect: Text;
   /** 進化カードの琥珀枠（§16）。表示切替のみで再構築しない */
   evoFrame: Graphics;
+  /** 数字キーの表示（§17: タッチモードでは隠す） */
+  key: Sprite;
 }
 
 /**
@@ -69,6 +72,14 @@ export class LevelUpModal {
 
     this.container.visible = false;
 
+    // §17: タッチモードではキーボード用ラベルを隠す（カード・ボタンはタップで反応する）
+    onInputModeChange((mode) => {
+      const touch = mode === 'touch';
+      for (const card of this.cards) card.key.visible = !touch;
+      rerollKey.visible = !touch;
+      this.rerollText.position.x = touch ? 0 : 9;
+    });
+
     // §17: 選択は 1・2・3、リロールは R。表示中のみ反応させる
     window.addEventListener('keydown', (e) => {
       if (!this.container.visible || this.container.parent === null) return;
@@ -120,7 +131,7 @@ export class LevelUpModal {
     root.eventMode = 'static';
     root.cursor = 'pointer';
     root.on('pointerdown', () => this.onPick?.(index));
-    return { root, title, level, effect, evoFrame };
+    return { root, title, level, effect, evoFrame, key };
   }
 
   show(views: ChoiceView[], rerollsLeft: number): void {

@@ -14,6 +14,7 @@ import { WEAPON_IDS } from '../systems/WeaponSystem';
 import { SaveManager } from '../save/SaveManager';
 import { GameLoop } from './GameLoop';
 import { InputManager } from './Input';
+import { initInputMode } from './inputMode';
 import { SceneManager } from './SceneManager';
 import type { CharacterDef, MetaUpgradeDef, Modifiers, PlayResult, RunSetup, StageDef } from '../types';
 
@@ -55,6 +56,8 @@ export class Game {
 
   start(): void {
     this.input.attach();
+    // 入力モードの自動判定（§17 Phase 10 改修）。シーン生成前に開始する
+    initInputMode();
 
     // resizeTo: window の実際の反映は renderer の resize イベントで受ける
     this.app.renderer.on('resize', (width: number, height: number) => {

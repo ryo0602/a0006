@@ -1,4 +1,5 @@
 import { Container, Graphics, NineSliceSprite, Sprite, Text } from 'pixi.js';
+import { onInputModeChange } from '../core/inputMode';
 import metaUpgradesData from '../data/metaUpgrades.json';
 import { createPanel, PROMPT_DIGITS, promptTexture, PromptKey } from '../ui/prompts';
 import { COLORS, FONT_MONO } from '../ui/theme';
@@ -111,6 +112,14 @@ export class UpgradeScene implements Scene {
       this.rows.push(row);
       this.container.addChild(row.root);
     }
+
+    // §17: タッチモードではキー画像を隠す（行はタップで購入できる）
+    onInputModeChange((mode) => {
+      const touch = mode === 'touch';
+      for (const row of this.rows) row.key.visible = !touch;
+      backKey.visible = !touch;
+      backLabel.position.x = touch ? 0 : -14;
+    });
 
     window.addEventListener('keydown', (e) => {
       if (this.container.parent === null) return;

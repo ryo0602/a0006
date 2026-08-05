@@ -1,6 +1,7 @@
 import { Container, Graphics, NineSliceSprite, Sprite, Text } from 'pixi.js';
 import stagesData from '../data/stages.json';
 import { isMobileWidth } from '../core/device';
+import { onInputModeChange } from '../core/inputMode';
 import { createPanel, PROMPT_DIGITS, promptTexture } from '../ui/prompts';
 import { COLORS, FONT_MONO } from '../ui/theme';
 import type { Scene, StageDef } from '../types';
@@ -87,12 +88,17 @@ export class StageSelectScene implements Scene {
   private readonly charIndex: Text;
   private readonly charPrevKey: Sprite;
   private readonly charNextKey: Sprite;
+  /** タッチモード用の送り矢印（§17: キー画像の代わりに表示） */
+  private readonly charPrevArrow: Text;
+  private readonly charNextArrow: Text;
   private readonly charPickHint: Container;
   private browseIndex = 0;
 
   private view: StageSelectView | null = null;
   private screenWidth = 1280;
   private screenHeight = 720;
+  /** 入力モードの適用（§17）。ステージカード生成後に onInputModeChange へ登録する */
+  private readonly applyInputMode: (mode: 'keyboard' | 'touch') => void;
 
   constructor(private readonly handlers: StageSelectHandlers) {
     this.bg = new Graphics().rect(0, 0, 1, 1).fill(COLORS.bgDeep);
@@ -205,6 +211,10 @@ export class StageSelectScene implements Scene {
     this.charNextKey.eventMode = 'static';
     this.charNextKey.cursor = 'pointer';
     this.charNextKey.on('pointerdown', () => this.browse(1));
+    this.charPrevArrow = arrowText('◀');
+    this.charNextArrow = arrowText('▶');
+    this.charPrevArrow.on('pointerdown', () => this.browse(-1));
+    this.charNextArrow.on('pointerdown', () => this.browse(1));
 
     // 決定（W）。タップはカード本体タップでも決定になる
     const pickLabel = new Text({
@@ -218,6 +228,24 @@ export class StageSelectScene implements Scene {
     pickKey.anchor.set(0.5);
     this.charPickHint = new Container();
     this.charPickHint.addChild(pickKey, pickLabel);
+
+    // §17: タッチモードではキー画像を隠し、タップ可能な矢印・文言に切り替える。
+    // ステージカード生成後に登録する必要があるため、適用関数として持つ
+    this.applyInputMode = (mode) => {
+      const touch = mode === 'touch';
+      for (const card of this.cards) card.key.visible = !touch;
+      this.charPrevKey.visible = !touch;
+      this.charNextKey.visible = !touch;
+      this.charPrevArrow.visible = touch;
+      this.charNextArrow.visible = touch;
+      pickKey.visible = !touch;
+      pickLabel.text = touch ? 'カードをタップで決定' : '決定';
+      pickLabel.position.x = touch ? -40 : 20;
+      upgradeKey.visible = !touch;
+      upgradeLabel.position.x = touch ? 0 : -12;
+      achieveKey.visible = !touch;
+      achieveLabel.position.x = touch ? 0 : -12;
+    };
 
     this.charRoot = new Container();
     this.charRoot.addChild(
@@ -242,6 +270,8 @@ export class StageSelectScene implements Scene {
       this.charRoot,
       this.charPrevKey,
       this.charNextKey,
+      this.charPrevArrow,
+      this.charNextArrow,
       this.charPickHint,
     );
 
@@ -250,6 +280,7 @@ export class StageSelectScene implements Scene {
       this.cards.push(card);
       this.container.addChild(card.root);
     }
+    onInputModeChange(this.applyInputMode);
 
     window.addEventListener('keydown', (e) => {
       if (this.container.parent === null) return;
@@ -420,7 +451,9 @@ export class StageSelectScene implements Scene {
       this.charRoot.position.set(x + 44, y);
       this.charPrevKey.position.set(x + 20, y + CHAR_H / 2);
       this.charNextKey.position.set(x + rowW - 20, y + CHAR_H / 2);
-      this.charPickHint.position.set(x + 44 + 8, y + CHAR_H + 16);
+      this.charPrevArrow.position.set(x + 20, y + CHAR_H / 2);
+      this.charNextArrow.position.set(x + rowW - 20, y + CHAR_H / 2);
+      this.charPickHint.position.set(x + 44 + 8 + 40, y + CHAR_H + 16);
       y += CHAR_H + 34;
       this.coinText.position.set(16, h - 28);
       this.upgradeBtn.position.set(w - 84, h - 28);
@@ -453,7 +486,9 @@ export class StageSelectScene implements Scene {
       this.charRoot.position.set((w - CHAR_W) / 2, cy);
       this.charPrevKey.position.set((w - CHAR_W) / 2 - 28, cy + CHAR_H / 2);
       this.charNextKey.position.set((w + CHAR_W) / 2 + 28, cy + CHAR_H / 2);
-      this.charPickHint.position.set((w - CHAR_W) / 2 + 8, cy + CHAR_H + 18);
+      this.charPrevArrow.position.set((w - CHAR_W) / 2 - 28, cy + CHAR_H / 2);
+      this.charNextArrow.position.set((w + CHAR_W) / 2 + 28, cy + CHAR_H / 2);
+      this.charPickHint.position.set((w - CHAR_W) / 2 + 48, cy + CHAR_H + 18);
       this.coinText.position.set((w - CHAR_W) / 2, cy + CHAR_H + 52);
       this.upgradeBtn.position.set((w + CHAR_W) / 2 - 64, cy + CHAR_H + 52);
       this.achieveBtn.position.set((w + CHAR_W) / 2 - 220, cy + CHAR_H + 52);

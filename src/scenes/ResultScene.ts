@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from 'pixi.js';
+import { onInputModeChange } from '../core/inputMode';
 import { COLORS, FONT_MONO } from '../ui/theme';
 import type { UnlockNotice } from '../systems/AchievementSystem';
 import type { PlayResult, Scene } from '../types';
@@ -73,6 +74,11 @@ export class ResultScene implements Scene {
       style: { fontFamily: 'sans-serif', fontSize: 15, fill: COLORS.textDim },
     });
     this.hint.anchor.set(0.5);
+    // §17: タッチモードではキーボードの案内を出さない
+    onInputModeChange((mode) => {
+      this.hint.text =
+        mode === 'touch' ? 'タップでステージ選択へ' : 'タップ / Enter でステージ選択へ';
+    });
 
     this.container.addChild(this.bg, this.title, this.stats, this.coinText, this.noticeText, this.hint);
 

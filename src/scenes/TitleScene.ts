@@ -1,4 +1,5 @@
 import { Container, Graphics, Text } from 'pixi.js';
+import { onInputModeChange } from '../core/inputMode';
 import { COLORS } from '../ui/theme';
 import type { Scene } from '../types';
 
@@ -31,10 +32,14 @@ export class TitleScene implements Scene {
     this.title.anchor.set(0.5);
 
     this.hint = new Text({
-      text: 'タップ / Enter で開始',
+      text: 'タップで開始',
       style: { fontFamily: 'sans-serif', fontSize: 16, fill: COLORS.amber },
     });
     this.hint.anchor.set(0.5);
+    // §17: タッチモードではキーボードの案内を出さない
+    onInputModeChange((mode) => {
+      this.hint.text = mode === 'touch' ? 'タップで開始' : 'タップ / Enter で開始';
+    });
 
     this.container.addChild(this.bg, this.title, this.hint);
 

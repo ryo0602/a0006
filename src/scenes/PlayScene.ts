@@ -165,6 +165,10 @@ export class PlayScene implements Scene {
 
   /** レベルアップモーダル表示中のポーズ（§5: 遷移ではなくポーズ） */
   private paused = false;
+  /** モーダルを閉じた後の再開ディレイ残り秒（§13 Phase 10 改修）。0 で通常更新 */
+  private resumeDelayTimer = 0;
+  /** 再開ディレイ中のフェード幕（§16: 控えめな復帰表現。カウントダウンは出さない） */
+  private readonly resumeFade: Graphics;
   private elapsedSec = 0;
   private setup: RunSetup = neutralSetup();
   private stage: StageDef = stagesData.stages[0];
@@ -375,10 +379,15 @@ export class PlayScene implements Scene {
       this.events.onRetire();
     };
 
+    // 再開ディレイのフェード幕。モーダルの暗幕（alpha 0.78）から連続的に明けるよう同色にする
+    this.resumeFade = new Graphics().rect(0, 0, 1, 1).fill({ color: COLORS.bgDeep });
+    this.resumeFade.visible = false;
+
     this.container.addChild(
       this.bg,
       this.world,
       this.hud.container,
+      this.resumeFade,
       this.modal.container,
       this.pauseMenu.container,
       this.joystick,
@@ -479,6 +488,8 @@ export class PlayScene implements Scene {
     this.modal.hide();
     this.pauseMenu.hide();
     this.paused = false;
+    this.resumeDelayTimer = 0;
+    this.resumeFade.visible = false;
     this.finished = false;
     this.elapsedSec = 0;
     this.runCrits = 0;
@@ -506,6 +517,14 @@ export class PlayScene implements Scene {
   /** §4.2 の更新順序 */
   update(dtSec: number): void {
     if (this.paused || this.pauseMenu.visible || this.finished) return;
+
+    // 再開ディレイ（§13 Phase 10 改修）: モーダルを閉じてから resumeDelaySec の間は
+    // ゲーム更新を止める。スティックは指を離すと消える仕様のため、選択後に
+    // 握り直す時間を意図された「間」として設計する
+    if (this.resumeDelayTimer > 0) {
+      this.resumeDelayTimer -= dtSec;
+      return;
+    }
 
     if (import.meta.env.DEV && this.pendingBurst > 0) {
       this.spawn.burst(this.pendingBurst);
@@ -776,6 +795,10 @@ export class PlayScene implements Scene {
     }
     this.modal.hide();
     this.paused = false;
+    // 再開ディレイ開始 + その間（と直後）の被弾事故を防ぐ無敵付与（§7 / §13 Phase 10 改修）。
+    // 無敵時間はディレイ中は減らないため、実質「再開後 resumeDelaySec」の保護になる
+    this.resumeDelayTimer = levelingData.resumeDelaySec;
+    this.player.invincibleTimer = Math.max(this.player.invincibleTimer, levelingData.resumeDelaySec);
     // ポーズ中に溜まったデルタを解除時に一気に消化しない（敵の瞬間移動防止）
     this.events.onResume();
   }
@@ -1048,6 +1071,14 @@ export class PlayScene implements Scene {
         this.hud.setBossHp(null);
       }
     }
+    // 再開ディレイのフェード（§16: モーダルの暗幕から連続的に明ける控えめな表現）
+    if (this.resumeDelayTimer > 0) {
+      this.resumeFade.visible = true;
+      this.resumeFade.alpha = 0.78 * (this.resumeDelayTimer / levelingData.resumeDelaySec);
+    } else if (this.resumeFade.visible) {
+      this.resumeFade.visible = false;
+    }
+
     // 右下: このプレイで獲得予定のコイン（§16。クリア補正なしの現在値）
     this.hud.setCoins(this.coinsEarned(false));
     if (import.meta.env.DEV) {
@@ -1060,6 +1091,8 @@ export class PlayScene implements Scene {
     this.camera.resize(width, height);
     this.bg.width = width;
     this.bg.height = height;
+    this.resumeFade.width = width;
+    this.resumeFade.height = height;
     this.joystick.resize(width);
     this.hud.resize(width, height);
     this.modal.resize(width, height);

@@ -1,4 +1,5 @@
 import { Container, Graphics, NineSliceSprite, Sprite, Text } from 'pixi.js';
+import { currentInputMode, onInputModeChange } from '../core/inputMode';
 import { createPanel, PROMPT_DIGITS, promptTexture } from '../ui/prompts';
 import { COLORS, FONT_MONO } from '../ui/theme';
 import type { AchievementDef, ChallengeDef, Scene } from '../types';
@@ -117,6 +118,14 @@ export class AchievementScene implements Scene {
       this.container.addChild(row.root);
     }
 
+    // §17: タッチモードではキー画像を隠す（チャレンジ行はタップで開始できる）
+    onInputModeChange((mode) => {
+      backKey.visible = mode !== 'touch';
+      backLabel.position.x = mode === 'touch' ? 0 : -14;
+      // 表示中のチャレンジ頁のキー表示にも反映する
+      if (this.view !== null) this.renderPage();
+    });
+
     window.addEventListener('keydown', (e) => {
       if (this.container.parent === null) return;
       if (e.code === 'Escape') {
@@ -221,7 +230,7 @@ export class AchievementScene implements Scene {
         : 'ステージ3クリアで解放';
       row.right.text = entry.cleared ? 'クリア済' : `初回 +${entry.def.reward}`;
       row.right.style.fill = entry.cleared ? COLORS.toxic : COLORS.amber;
-      row.key.visible = v.challengesUnlocked;
+      row.key.visible = v.challengesUnlocked && currentInputMode() !== 'touch';
       row.root.alpha = v.challengesUnlocked ? 1 : 0.5;
       row.root.eventMode = v.challengesUnlocked ? 'static' : 'none';
       row.root.cursor = v.challengesUnlocked ? 'pointer' : 'default';

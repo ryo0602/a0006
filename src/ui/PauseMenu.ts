@@ -1,4 +1,5 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
+import { onInputModeChange } from '../core/inputMode';
 import { createPanel, promptTexture } from './prompts';
 import { COLORS } from './theme';
 
@@ -35,13 +36,16 @@ export class PauseMenu {
     this.title.anchor.set(0.5);
 
     this.resumeBtn = buildButton('再開', COLORS.textMain, () => this.onResume?.());
-    // ESC で再開できることをアイコンで示す
+    // ESC で再開できることをアイコンで示す（§17: タッチモードでは隠す）
     const escKey = new Sprite(promptTexture('ESC'));
     escKey.scale.set(2);
     escKey.anchor.set(0.5);
     escKey.position.set(56, 0);
     this.resumeBtn.addChild(escKey);
     this.retireBtn = buildButton('リタイア', COLORS.hpRed, () => this.onRetire?.());
+    onInputModeChange((mode) => {
+      escKey.visible = mode !== 'touch';
+    });
 
     this.container.addChild(this.dim, this.title, this.resumeBtn, this.retireBtn);
     this.container.visible = false;
