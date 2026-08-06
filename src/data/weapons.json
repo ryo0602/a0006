@@ -48,43 +48,43 @@
     "name": "オーブ",
     "levels": [
       {
-        "damage": 8,
+        "damage": 11,
         "count": 1,
         "orbitRadius": 70,
         "rotSpeedRad": 2.4,
-        "hitIntervalSec": 0.5,
+        "hitIntervalSec": 0.35,
         "radius": 10
       },
       {
-        "damage": 10,
+        "damage": 14,
         "count": 1,
         "orbitRadius": 75,
         "rotSpeedRad": 2.4,
-        "hitIntervalSec": 0.5,
+        "hitIntervalSec": 0.35,
         "radius": 10
       },
       {
-        "damage": 10,
+        "damage": 14,
         "count": 2,
         "orbitRadius": 80,
         "rotSpeedRad": 2.4,
-        "hitIntervalSec": 0.5,
+        "hitIntervalSec": 0.35,
         "radius": 10
       },
       {
-        "damage": 13,
+        "damage": 18,
         "count": 3,
         "orbitRadius": 90,
         "rotSpeedRad": 2.6,
-        "hitIntervalSec": 0.5,
+        "hitIntervalSec": 0.35,
         "radius": 10
       },
       {
-        "damage": 13,
+        "damage": 18,
         "count": 4,
         "orbitRadius": 100,
         "rotSpeedRad": 2.8,
-        "hitIntervalSec": 0.5,
+        "hitIntervalSec": 0.35,
         "radius": 10
       }
     ]
