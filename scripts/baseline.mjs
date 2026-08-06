@@ -27,6 +27,10 @@ const RATE = 0.75; // 回収率の仮定（ボットの回収は人間より低�
 
 const leveling = JSON.parse(readFileSync(join(ROOT, 'src/data/leveling.json'), 'utf8'));
 
+// 平均ジェム価値/キル。2.4 は gem_small=2 時代の実測に基づく基準で、
+// ジェム価値を一律スケールするバランス変更に計測が追随するよう gem_small 比で換算する
+const GEM_AVG_PER_KILL = 2.4 * (leveling.gemExp.gem_small / 2);
+
 const CHARS = [
   { id: 'runner', engage: 180 },
   { id: 'tank', engage: 100 }, // 接触武器（オーブ）は敵を引き付けるグレイズ動作
@@ -48,6 +52,15 @@ const METAS = {
 
 function findChrome() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
+  if (process.platform === 'win32') {
+    for (const p of [
+      'C:/Program Files/Google/Chrome/Application/chrome.exe',
+      'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+    ]) {
+      if (existsSync(p)) return p;
+    }
+    throw new Error('Chrome が見つかりません（CHROME_BIN で指定可能）');
+  }
   for (const bin of ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser']) {
     try {
       execSync(`command -v ${bin}`, { stdio: 'pipe' });
@@ -101,15 +114,34 @@ async function openTab(url) {
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
     if (m.id !== undefined && pending.has(m.id)) {
-      pending.get(m.id)(m);
+      pending.get(m.id).resolve(m);
       pending.delete(m.id);
     }
   };
+  // タブがクラッシュすると応答が永久に来ず全体がハングする（実測で発生）。
+  // close で全ペンディングを棄却し、タイムアウトと合わせて呼び出し側のリトライに委ねる
+  ws.onclose = () => {
+    for (const p of pending.values()) p.reject(new Error('CDP WebSocket closed'));
+    pending.clear();
+  };
   await new Promise((r) => (ws.onopen = r));
   const send = (method, params = {}) =>
-    new Promise((r) => {
+    new Promise((resolve, reject) => {
       const id = ++msgId;
-      pending.set(id, r);
+      const timer = setTimeout(() => {
+        pending.delete(id);
+        reject(new Error(`CDP応答タイムアウト: ${method}`));
+      }, 30000);
+      pending.set(id, {
+        resolve: (m) => {
+          clearTimeout(timer);
+          resolve(m);
+        },
+        reject: (e) => {
+          clearTimeout(timer);
+          reject(e);
+        },
+      });
       ws.send(JSON.stringify({ id, method, params }));
     });
   const evalp = async (expr) => {
@@ -119,7 +151,8 @@ async function openTab(url) {
     }
     return r.result?.result?.value;
   };
-  const close = () => send('Target.closeTarget', { targetId: target.id });
+  // タブ死亡後の close 失敗で本来の例外を握り潰さないよう、close 自体は失敗を無視する
+  const close = () => send('Target.closeTarget', { targetId: target.id }).catch(() => {});
   return { send, evalp, close };
 }
 
@@ -162,6 +195,11 @@ async function runOne(charId, metaKey, seed, engage) {
     await tab.send('Page.navigate', { url: `http://localhost:${VITE_PORT}/?seed=${seed}` });
     await sleep(2200);
     for (let i = 0; i < 20 && !(await tab.evalp('!!window.__debug')); i++) await sleep(500);
+
+    // 決定性の要: rAF の自動駆動を止め、以降のゲーム進行を手動 tick（固定50ms刻み）のみにする。
+    // これがないと eval の往復や sleep の間にゲームが実時間で進み、
+    // 同一シードでも結果がマシン負荷に依存して揺れる（シード付きRNGだけでは決定性が保てない）
+    await tab.evalp(`window.__debug.setAutoTick(false); 'off'`);
 
     const key = (c) => tab.evalp(`window.dispatchEvent(new KeyboardEvent('keydown',{code:'${c}'})); 'k'`);
     await key('Enter');
@@ -276,14 +314,14 @@ window.__auto = ((ENGAGE, PICKSEED) => {
     if (i < 0) i = Math.floor(pickRand() * 3);
     kd('Digit' + (i + 1));
   };
-  // 回収率補正: 累計獲得EXP = キル×平均ジェム2.4×回収率×expMul に不足分を注入
+  // 回収率補正: 累計獲得EXP = キル×平均ジェム価値×回収率×expMul に不足分を注入
   const EXP_BASE = ${leveling.expBase}, EXP_PER = ${leveling.expPerLevel};
   const totalExpTo = (lv) => { let t = 0; for (let l = 1; l < lv; l++) t += EXP_BASE + (l - 1) * EXP_PER; return t; };
   let startLevel = null;
   const correct = (s) => {
     if (startLevel === null) startLevel = s.level;
     const collected = totalExpTo(s.level) - totalExpTo(startLevel) + s.exp;
-    const target = s.kills * 2.4 * ${RATE} * (s.expMul ?? 1);
+    const target = s.kills * ${GEM_AVG_PER_KILL} * ${RATE} * (s.expMul ?? 1);
     if (target > collected + 5) d.giveExp((target - collected) / (s.expMul ?? 1));
   };
   return {
@@ -303,11 +341,16 @@ window.__auto = ((ENGAGE, PICKSEED) => {
 
 // ---- メイン ----
 console.log('baseline: dev サーバーと Chrome を起動中...');
-const vite = spawn('npx', ['vite', '--port', String(VITE_PORT), '--strictPort'], {
-  cwd: ROOT,
-  stdio: 'ignore',
-  detached: true,
-});
+// Windows では 'npx' を直接 spawn できない（ENOENT）ため、vite の JS バイナリを node で起動する
+const vite = spawn(
+  process.execPath,
+  [join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', String(VITE_PORT), '--strictPort'],
+  {
+    cwd: ROOT,
+    stdio: 'ignore',
+    detached: process.platform !== 'win32',
+  },
+);
 children.push(vite);
 const chrome = spawn(
   findChrome(),
@@ -322,7 +365,17 @@ const runs = [];
 for (const { id: charId, engage } of CHARS) {
   for (const metaKey of Object.keys(METAS)) {
     for (const seed of SEEDS) {
-      const r = await runOne(charId, metaKey, seed, engage);
+      // タブクラッシュ由来の失敗は1回だけ再試行する（ゲーム進行は決定的なので再現条件は同じ。
+      // 2回連続で落ちる場合は環境要因ではないため、隠さず全体を失敗させる）
+      let r = null;
+      for (let attempt = 0; r === null; attempt++) {
+        try {
+          r = await runOne(charId, metaKey, seed, engage);
+        } catch (e) {
+          console.log(`  ${charId}/${metaKey} seed=${seed}: 試行${attempt + 1}失敗: ${String(e).slice(0, 140)}`);
+          if (attempt >= 1) throw e;
+        }
+      }
       runs.push(r);
       console.log(
         `  ${charId}/${metaKey} seed=${seed}: Lv${r.level} kills=${r.kills} ` +

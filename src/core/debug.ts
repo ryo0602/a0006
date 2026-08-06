@@ -27,6 +27,11 @@ export interface DebugApi {
   tick(ms: number): void;
   /** 描画を除いた update のみを駆動する（処理量のスケーリング計測用） */
   tickNoDraw(ms: number): void;
+  /**
+   * rAF からの自動駆動を切り替える。false の間は手動 tick だけがゲームを進むため、
+   * 自動プレイ計測（scripts/baseline.mjs）が壁時計に依存せず決定的になる
+   */
+  setAutoTick(on: boolean): void;
   /** 敵を一括スポーンする */
   burst(count: number): void;
   /** 経験値を直接加算する（レベルアップモーダルの検証用） */
@@ -134,6 +139,11 @@ export function attachDebug(loop: GameLoop, play: PlayScene, app: Application, g
       app.renderer.render(app.stage);
     },
     tickNoDraw: (ms) => loop.tick(ms),
+    setAutoTick: (on) => {
+      loop.autoTick = on;
+      // 再開時に停止中へ溜まったデルタを一気に消化しないよう捨てる
+      if (on) loop.reset();
+    },
     burst: (count) => p.spawn.burst(count),
     giveExp: (amount) => p.levelSystem.addExp(amount),
     spawnGems: (count) => {

@@ -11,6 +11,13 @@ const FIXED_DT_SEC = FIXED_DT_MS / 1000;
 export class GameLoop {
   private accumulator = 0;
 
+  /**
+   * rAF（ticker）からの自動駆動を許可するか。基準線計測（scripts/baseline.mjs）が
+   * 手動 tick のみでゲームを進めて決定性を保証するために false にする。
+   * 実プレイでは常に true（デバッグAPI以外から触らない）。
+   */
+  autoTick = true;
+
   constructor(
     private readonly update: (dtSec: number) => void,
     private readonly render: () => void,

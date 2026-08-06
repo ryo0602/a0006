@@ -95,8 +95,11 @@ export class Game {
 
     this.scenes.change(this.title);
 
-    // ticker のコールバック引数は Ticker インスタンス（§18-3）
-    this.app.ticker.add((ticker) => this.loop.tick(ticker.deltaMS));
+    // ticker のコールバック引数は Ticker インスタンス（§18-3）。
+    // autoTick が false の間は手動 tick（デバッグAPI）だけがゲームを進める（計測の決定性担保）
+    this.app.ticker.add((ticker) => {
+      if (this.loop.autoTick) this.loop.tick(ticker.deltaMS);
+    });
 
     if (import.meta.env.DEV) {
       // 検証用フック。動的 import ごと本番ビルドから除去される
