@@ -31,12 +31,14 @@ export class Storm extends WeaponBase {
       const target = pickVisibleEnemy(ctx);
       if (target === null) return;
 
-      ctx.hash.queryCircle(target.x, target.y, STATS.blastRadius, this.blastBuf);
+      // 爆発半径はエリアパッシブ（§9）で拡大
+      const blast = STATS.blastRadius * ctx.areaMul;
+      ctx.hash.queryCircle(target.x, target.y, blast, this.blastBuf);
       for (let i = 0; i < this.blastBuf.length; i++) {
         const e = this.blastBuf[i];
         const dx = e.x - target.x;
         const dy = e.y - target.y;
-        const r = STATS.blastRadius + e.radius;
+        const r = blast + e.radius;
         if (dx * dx + dy * dy < r * r) {
           ctx.applyDamage(e, STATS.damage * ctx.damageMul);
         }

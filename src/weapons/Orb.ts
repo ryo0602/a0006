@@ -58,8 +58,10 @@ export class Orb extends WeaponBase {
       const orb = this.orbs[i];
       orb.radius = def.radius; // レベルアップ直後の取得済みオーブにも新定義を反映する
       const a = this.angle + (i * Math.PI * 2) / this.orbs.length;
-      orb.x = ctx.player.x + Math.cos(a) * def.orbitRadius;
-      orb.y = ctx.player.y + Math.sin(a) * def.orbitRadius;
+      // 軌道半径はエリアパッシブ（§9）で拡大（オーブの「射程」に相当）
+      const orbit = def.orbitRadius * ctx.areaMul;
+      orb.x = ctx.player.x + Math.cos(a) * orbit;
+      orb.y = ctx.player.y + Math.sin(a) * orbit;
 
       ctx.hash.queryNeighbors(orb.x, orb.y, this.queryBuf);
       for (let j = 0; j < this.queryBuf.length; j++) {

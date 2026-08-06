@@ -61,6 +61,7 @@ export interface DebugApi {
     projectiles: number;
     enemyProjectiles: number;
     gems: number;
+    gemsCollected: number;
     pickupsOnField: number;
     level: number;
     exp: number;
@@ -243,6 +244,7 @@ export function attachDebug(loop: GameLoop, play: PlayScene, app: Application, g
         projectiles: p.projectiles.length,
         enemyProjectiles: p.enemyProjectiles.length,
         gems: p.gems.length,
+        gemsCollected: p.pickup.gemsCollected,
         pickupsOnField: p.pickups.length,
         level: p.levelSystem.level,
         exp: p.levelSystem.exp,

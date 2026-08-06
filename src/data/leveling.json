@@ -5,7 +5,7 @@
     "gem_large": 30
   },
   "expBase": 25,
-  "expPerLevel": 20,
+  "expPerLevel": 12,
   "expStepEvery5": 0,
   "rerollsPerRun": 3,
   "healRatio": 0.2,

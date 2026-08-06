@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "baseline": "node scripts/baseline.mjs"
   },
   "dependencies": {
     "pixi.js": "^8.19.0"

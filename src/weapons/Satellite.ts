@@ -54,7 +54,8 @@ export class Satellite extends WeaponBase {
       const a = inner
         ? this.angle + (ringIndex * Math.PI * 2) / 3
         : -this.angle + (ringIndex * Math.PI * 2) / 3;
-      const radius = inner ? STATS.orbitRadiusInner : STATS.orbitRadiusOuter;
+      // 軌道半径はエリアパッシブ（§9）で拡大
+      const radius = (inner ? STATS.orbitRadiusInner : STATS.orbitRadiusOuter) * ctx.areaMul;
       orb.x = ctx.player.x + Math.cos(a) * radius;
       orb.y = ctx.player.y + Math.sin(a) * radius;
 

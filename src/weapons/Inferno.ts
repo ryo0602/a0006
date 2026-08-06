@@ -26,18 +26,21 @@ export class Inferno extends WeaponBase {
 
   update(dtSec: number, ctx: WeaponContext): void {
     this.sprite.position.set(ctx.player.x, ctx.player.y);
+    // 射程はエリアパッシブ（§9）で拡大。テクスチャは再生成せずスケールで追従（§18-6）
+    this.sprite.scale.set(ctx.areaMul);
 
     this.tickTimer -= dtSec;
     if (this.tickTimer > 0) return;
     this.tickTimer = STATS.tickSec;
 
     let dealt = 0;
-    ctx.hash.queryCircle(ctx.player.x, ctx.player.y, STATS.range, this.queryBuf);
+    const range = STATS.range * ctx.areaMul;
+    ctx.hash.queryCircle(ctx.player.x, ctx.player.y, range, this.queryBuf);
     for (let i = 0; i < this.queryBuf.length; i++) {
       const e = this.queryBuf[i];
       const dx = e.x - ctx.player.x;
       const dy = e.y - ctx.player.y;
-      const reach = STATS.range + e.radius;
+      const reach = range + e.radius;
       if (dx * dx + dy * dy > reach * reach) continue;
       const damage = STATS.damagePerTick * ctx.damageMul;
       ctx.applyDamage(e, damage);

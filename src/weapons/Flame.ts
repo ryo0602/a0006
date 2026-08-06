@@ -34,6 +34,8 @@ export class Flame extends WeaponBase {
 
     this.sprite.position.set(ctx.player.x, ctx.player.y);
     this.sprite.rotation = Math.atan2(ctx.player.facingY, ctx.player.facingX);
+    // 射程はエリアパッシブ（§9）で拡大。テクスチャは再生成せずスケールで追従（§18-6）
+    this.sprite.scale.set(ctx.areaMul);
 
     this.tickTimer -= dtSec;
     if (this.tickTimer > 0) return;
@@ -45,13 +47,14 @@ export class Flame extends WeaponBase {
     const cosHalf = Math.cos(((def.arcDeg / 2) * Math.PI) / 180);
     const cosHalfSq = cosHalf * cosHalf;
 
-    ctx.hash.queryCircle(ctx.player.x, ctx.player.y, def.range, this.queryBuf);
+    const range = def.range * ctx.areaMul;
+    ctx.hash.queryCircle(ctx.player.x, ctx.player.y, range, this.queryBuf);
     for (let i = 0; i < this.queryBuf.length; i++) {
       const e = this.queryBuf[i];
       const dx = e.x - ctx.player.x;
       const dy = e.y - ctx.player.y;
       const distSq = dx * dx + dy * dy;
-      const reach = def.range + e.radius;
+      const reach = range + e.radius;
       if (distSq > reach * reach) continue;
       const dot = dx * fx + dy * fy;
       if (dot <= 0) continue; // 背後

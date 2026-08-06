@@ -33,13 +33,14 @@ export class Thunder extends WeaponBase {
       const target = this.pickTarget(ctx);
       if (target === null) return;
 
-      // 着弾点の範囲ダメージ
-      ctx.hash.queryCircle(target.x, target.y, def.blastRadius, this.blastBuf);
+      // 着弾点の範囲ダメージ（爆発半径はエリアパッシブ §9 で拡大）
+      const blast = def.blastRadius * ctx.areaMul;
+      ctx.hash.queryCircle(target.x, target.y, blast, this.blastBuf);
       for (let i = 0; i < this.blastBuf.length; i++) {
         const e = this.blastBuf[i];
         const dx = e.x - target.x;
         const dy = e.y - target.y;
-        const r = def.blastRadius + e.radius;
+        const r = blast + e.radius;
         if (dx * dx + dy * dy < r * r) {
           ctx.applyDamage(e, def.damage * ctx.damageMul);
         }
