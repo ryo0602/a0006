@@ -173,6 +173,8 @@ export class PlayScene implements Scene {
   private setup: RunSetup = neutralSetup();
   private stage: StageDef = stagesData.stages[0];
   private passiveLevels: Record<string, number> = {};
+  /** 闘志（§9）取得時点の被弾数。-1 = 未取得。取得後の被弾だけを成長に数える */
+  private furyHitsBase = -1;
   private currentChoices: LevelChoice[] = [];
   private finished = false;
   /** クリティカル率（§9 Phase 8）。applyPassives が更新する */
@@ -356,6 +358,7 @@ export class PlayScene implements Scene {
       cooldownMul: 1,
       searchRadius: 800,
       areaMul: 1,
+      furyMul: 1,
       spawnProjectile: () => this.spawnProjectile(),
       // クリティカル（§9 Phase 8）はダメージ適用の一元窓口で判定する
       applyDamage: (enemy, dmg) => {
@@ -477,6 +480,8 @@ export class PlayScene implements Scene {
     this.weapons.reset();
     this.weapons.add(this.setup.initialWeapon);
     this.passiveLevels = {};
+    this.furyHitsBase = -1;
+    this.weaponCtx.furyMul = 1;
     this.applyPassives();
     // キャラ・メタの最大HP補正を反映してから全回復させる（tank 130 開始など）
     this.player.hp = this.player.maxHp;
@@ -544,6 +549,17 @@ export class PlayScene implements Scene {
 
     // 6: 武器
     this.weaponCtx.elapsedSec = this.elapsedSec;
+    // 闘志（§9）: 他の Modifiers と違い被弾イベントで変わるためここで更新する。
+    // hitsTaken はシールドで防いだ分を含まない（§7 のトレードオフはこの1行で成立する）
+    const furyLv = this.passiveLevels['fury'] ?? 0;
+    this.weaponCtx.furyMul =
+      furyLv > 0
+        ? 1 +
+          Math.min(
+            (this.damage.hitsTaken - this.furyHitsBase) * (PASSIVES['fury'].furyPerHitAdd ?? 0),
+            furyLv * (PASSIVES['fury'].furyCapPerLevel ?? 0),
+          )
+        : 1;
     this.weaponCtx.searchRadius =
       Math.sqrt(
         this.camera.viewHalfWidth * this.camera.viewHalfWidth +
@@ -830,6 +846,10 @@ export class PlayScene implements Scene {
       }
       case 'passive':
         this.passiveLevels[choice.passiveId] = (this.passiveLevels[choice.passiveId] ?? 0) + 1;
+        // 闘志（§9）は取得後の被弾のみ数える（遅取りで過去の被弾が遡って乗るのを防ぐ）
+        if (choice.passiveId === 'fury' && this.furyHitsBase < 0) {
+          this.furyHitsBase = this.damage.hitsTaken;
+        }
         this.applyPassives();
         break;
       case 'heal':
@@ -893,6 +913,8 @@ export class PlayScene implements Scene {
       }
     }
     for (const id of PASSIVE_IDS) {
+      // 闘志（§9）はオーブ系専用。対象武器を持たないランでは死に選択肢になるため候補から外す
+      if (id === 'fury' && !this.weapons.has('orb') && !this.weapons.has('satellite')) continue;
       if ((this.passiveLevels[id] ?? 0) < PASSIVES[id].maxLevel) {
         cands.push({ kind: 'passive', passiveId: id });
         weights.push(this.passiveReachWeight(id));
@@ -1273,6 +1295,9 @@ function passiveEffectText(def: PassiveDef): string {
   if (def.areaAddPerLevel !== undefined) return `攻撃範囲 +${def.areaAddPerLevel * 100}%`;
   if (def.shieldIntervalBase !== undefined) {
     return `被弾1回無効 / チャージ -${def.shieldIntervalCutPerLevel ?? 0}s`;
+  }
+  if (def.furyPerHitAdd !== undefined) {
+    return `被弾ごとオーブ系 +${def.furyPerHitAdd * 100}%（上限 +${(def.furyCapPerLevel ?? 0) * 100}%×Lv）`;
   }
   return '';
 }

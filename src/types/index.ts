@@ -147,6 +147,9 @@ export interface PassiveDef {
   /** シールド（Phase 8）: チャージ間隔 = base - cut × Lv */
   shieldIntervalBase?: number;
   shieldIntervalCutPerLevel?: number;
+  /** 闘志（§9）: 被弾1回ごとのオーブ系ダメージ加算と、闘志1レベルあたりの上限 */
+  furyPerHitAdd?: number;
+  furyCapPerLevel?: number;
 }
 
 /** パッシブ合算後の補正値。パッシブ取得時にのみ再計算する（毎フレーム計算しない） */

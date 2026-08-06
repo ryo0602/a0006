@@ -41,5 +41,11 @@
     "maxLevel": 5,
     "shieldIntervalBase": 30,
     "shieldIntervalCutPerLevel": 4
+  },
+  "fury": {
+    "name": "闘志",
+    "maxLevel": 5,
+    "furyPerHitAdd": 0.08,
+    "furyCapPerLevel": 0.16
   }
 }

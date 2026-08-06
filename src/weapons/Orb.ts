@@ -74,7 +74,7 @@ export class Orb extends WeaponBase {
         // オーブ番号 i ごとの前回ヒット時刻と比較する
         if (ctx.elapsedSec - e.orbLastHitAt[i] < def.hitIntervalSec) continue;
         e.orbLastHitAt[i] = ctx.elapsedSec;
-        ctx.applyDamage(e, def.damage * ctx.damageMul);
+        ctx.applyDamage(e, def.damage * ctx.damageMul * ctx.furyMul);
       }
     }
   }

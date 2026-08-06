@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-06T06:34:36.896Z",
-  "commit": "ed677a4",
+  "generatedAt": "2026-08-06T06:40:49.816Z",
+  "commit": "aba08c6",
   "seeds": [
     101,
     202,
@@ -8,10 +8,10 @@
   ],
   "summary": {
     "runner_none": {
-      "avgLevel": 10,
-      "avgKills": 373.7,
+      "avgLevel": 12.3,
+      "avgKills": 524.3,
       "clearRate": 0,
-      "avgCoins": 196.7
+      "avgCoins": 237.7
     },
     "runner_full": {
       "avgLevel": 20,
@@ -26,10 +26,10 @@
       "avgCoins": 82
     },
     "tank_full": {
-      "avgLevel": 23.7,
-      "avgKills": 924.3,
+      "avgLevel": 23.3,
+      "avgKills": 988.3,
       "clearRate": 0.3,
-      "avgCoins": 1073.3
+      "avgCoins": 1095.7
     },
     "sniper_none": {
       "avgLevel": 9.7,
@@ -50,10 +50,10 @@
       "meta": "none",
       "seed": 101,
       "cleared": false,
-      "level": 8,
-      "kills": 230,
-      "coins": 170,
-      "diedAtSec": 249
+      "level": 13,
+      "kills": 597,
+      "coins": 254,
+      "diedAtSec": 285
     },
     {
       "char": "runner",
@@ -70,10 +70,10 @@
       "meta": "none",
       "seed": 303,
       "cleared": false,
-      "level": 8,
-      "kills": 246,
-      "coins": 162,
-      "diedAtSec": 227
+      "level": 10,
+      "kills": 331,
+      "coins": 201,
+      "diedAtSec": 286
     },
     {
       "char": "runner",
@@ -140,30 +140,30 @@
       "meta": "full",
       "seed": 101,
       "cleared": true,
-      "level": 28,
-      "kills": 1317,
-      "coins": 1797,
-      "diedAtSec": 275
+      "level": 27,
+      "kills": 1254,
+      "coins": 1677,
+      "diedAtSec": 284
     },
     {
       "char": "tank",
       "meta": "full",
       "seed": 202,
       "cleared": false,
-      "level": 26,
-      "kills": 871,
-      "coins": 981,
-      "diedAtSec": 214
+      "level": 20,
+      "kills": 742,
+      "coins": 852,
+      "diedAtSec": 209
     },
     {
       "char": "tank",
       "meta": "full",
       "seed": 303,
       "cleared": false,
-      "level": 17,
-      "kills": 585,
-      "coins": 442,
-      "diedAtSec": 253
+      "level": 23,
+      "kills": 969,
+      "coins": 758,
+      "diedAtSec": 230
     },
     {
       "char": "sniper",
