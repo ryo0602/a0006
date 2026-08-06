@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-06T06:28:23.165Z",
-  "commit": "82c9f19",
+  "generatedAt": "2026-08-06T06:34:36.896Z",
+  "commit": "ed677a4",
   "seeds": [
     101,
     202,
@@ -8,40 +8,40 @@
   ],
   "summary": {
     "runner_none": {
-      "avgLevel": 8.3,
-      "avgKills": 284,
+      "avgLevel": 10,
+      "avgKills": 373.7,
       "clearRate": 0,
-      "avgCoins": 187.7
+      "avgCoins": 196.7
     },
     "runner_full": {
-      "avgLevel": 19,
-      "avgKills": 821.7,
-      "clearRate": 1,
-      "avgCoins": 1131.3
+      "avgLevel": 20,
+      "avgKills": 731.7,
+      "clearRate": 0.7,
+      "avgCoins": 937
     },
     "tank_none": {
-      "avgLevel": 2,
-      "avgKills": 25.3,
+      "avgLevel": 2.3,
+      "avgKills": 27.3,
       "clearRate": 0,
-      "avgCoins": 86.3
+      "avgCoins": 82
     },
     "tank_full": {
       "avgLevel": 23.7,
-      "avgKills": 904,
-      "clearRate": 0,
-      "avgCoins": 793.7
+      "avgKills": 924.3,
+      "clearRate": 0.3,
+      "avgCoins": 1073.3
     },
     "sniper_none": {
-      "avgLevel": 8.7,
-      "avgKills": 305.7,
-      "clearRate": 0.3,
-      "avgCoins": 302.7
+      "avgLevel": 9.7,
+      "avgKills": 341.7,
+      "clearRate": 0,
+      "avgCoins": 203
     },
     "sniper_full": {
-      "avgLevel": 16.3,
-      "avgKills": 581.7,
-      "clearRate": 0.3,
-      "avgCoins": 788
+      "avgLevel": 21,
+      "avgKills": 809,
+      "clearRate": 0.7,
+      "avgCoins": 1073
     }
   },
   "runs": [
@@ -51,179 +51,179 @@
       "seed": 101,
       "cleared": false,
       "level": 8,
-      "kills": 262,
-      "coins": 187,
-      "diedAtSec": 289
+      "kills": 230,
+      "coins": 170,
+      "diedAtSec": 249
     },
     {
       "char": "runner",
       "meta": "none",
       "seed": 202,
       "cleared": false,
-      "level": 10,
-      "kills": 398,
-      "coins": 203,
-      "diedAtSec": 250
+      "level": 14,
+      "kills": 645,
+      "coins": 258,
+      "diedAtSec": 260
     },
     {
       "char": "runner",
       "meta": "none",
       "seed": 303,
-      "cleared": false,
-      "level": 7,
-      "kills": 192,
-      "coins": 173,
-      "diedAtSec": 287
-    },
-    {
-      "char": "runner",
-      "meta": "full",
-      "seed": 101,
-      "cleared": true,
-      "level": 16,
-      "kills": 602,
-      "coins": 782,
-      "diedAtSec": 308
-    },
-    {
-      "char": "runner",
-      "meta": "full",
-      "seed": 202,
-      "cleared": true,
-      "level": 22,
-      "kills": 1022,
-      "coins": 1508,
-      "diedAtSec": 278
-    },
-    {
-      "char": "runner",
-      "meta": "full",
-      "seed": 303,
-      "cleared": true,
-      "level": 19,
-      "kills": 841,
-      "coins": 1104,
-      "diedAtSec": 289
-    },
-    {
-      "char": "tank",
-      "meta": "none",
-      "seed": 101,
-      "cleared": false,
-      "level": 2,
-      "kills": 31,
-      "coins": 105,
-      "diedAtSec": 200
-    },
-    {
-      "char": "tank",
-      "meta": "none",
-      "seed": 202,
-      "cleared": false,
-      "level": 2,
-      "kills": 29,
-      "coins": 80,
-      "diedAtSec": 151
-    },
-    {
-      "char": "tank",
-      "meta": "none",
-      "seed": 303,
-      "cleared": false,
-      "level": 2,
-      "kills": 16,
-      "coins": 74,
-      "diedAtSec": 143
-    },
-    {
-      "char": "tank",
-      "meta": "full",
-      "seed": 101,
-      "cleared": false,
-      "level": 19,
-      "kills": 844,
-      "coins": 583,
-      "diedAtSec": 232
-    },
-    {
-      "char": "tank",
-      "meta": "full",
-      "seed": 202,
-      "cleared": false,
-      "level": 26,
-      "kills": 1023,
-      "coins": 1071,
-      "diedAtSec": 235
-    },
-    {
-      "char": "tank",
-      "meta": "full",
-      "seed": 303,
-      "cleared": false,
-      "level": 26,
-      "kills": 845,
-      "coins": 727,
-      "diedAtSec": 218
-    },
-    {
-      "char": "sniper",
-      "meta": "none",
-      "seed": 101,
       "cleared": false,
       "level": 8,
       "kills": 246,
-      "coins": 184,
-      "diedAtSec": 282
+      "coins": 162,
+      "diedAtSec": 227
+    },
+    {
+      "char": "runner",
+      "meta": "full",
+      "seed": 101,
+      "cleared": true,
+      "level": 21,
+      "kills": 841,
+      "coins": 1404,
+      "diedAtSec": 279
+    },
+    {
+      "char": "runner",
+      "meta": "full",
+      "seed": 202,
+      "cleared": false,
+      "level": 18,
+      "kills": 671,
+      "coins": 451,
+      "diedAtSec": 235
+    },
+    {
+      "char": "runner",
+      "meta": "full",
+      "seed": 303,
+      "cleared": true,
+      "level": 21,
+      "kills": 683,
+      "coins": 956,
+      "diedAtSec": 441
+    },
+    {
+      "char": "tank",
+      "meta": "none",
+      "seed": 101,
+      "cleared": false,
+      "level": 2,
+      "kills": 26,
+      "coins": 86,
+      "diedAtSec": 164
+    },
+    {
+      "char": "tank",
+      "meta": "none",
+      "seed": 202,
+      "cleared": false,
+      "level": 3,
+      "kills": 43,
+      "coins": 90,
+      "diedAtSec": 165
+    },
+    {
+      "char": "tank",
+      "meta": "none",
+      "seed": 303,
+      "cleared": false,
+      "level": 2,
+      "kills": 13,
+      "coins": 70,
+      "diedAtSec": 136
+    },
+    {
+      "char": "tank",
+      "meta": "full",
+      "seed": 101,
+      "cleared": true,
+      "level": 28,
+      "kills": 1317,
+      "coins": 1797,
+      "diedAtSec": 275
+    },
+    {
+      "char": "tank",
+      "meta": "full",
+      "seed": 202,
+      "cleared": false,
+      "level": 26,
+      "kills": 871,
+      "coins": 981,
+      "diedAtSec": 214
+    },
+    {
+      "char": "tank",
+      "meta": "full",
+      "seed": 303,
+      "cleared": false,
+      "level": 17,
+      "kills": 585,
+      "coins": 442,
+      "diedAtSec": 253
+    },
+    {
+      "char": "sniper",
+      "meta": "none",
+      "seed": 101,
+      "cleared": false,
+      "level": 10,
+      "kills": 349,
+      "coins": 204,
+      "diedAtSec": 330
     },
     {
       "char": "sniper",
       "meta": "none",
       "seed": 202,
-      "cleared": true,
+      "cleared": false,
       "level": 13,
-      "kills": 539,
-      "coins": 563,
-      "diedAtSec": 355
+      "kills": 540,
+      "coins": 243,
+      "diedAtSec": 277
     },
     {
       "char": "sniper",
       "meta": "none",
       "seed": 303,
       "cleared": false,
-      "level": 5,
-      "kills": 132,
-      "coins": 161,
-      "diedAtSec": 293
+      "level": 6,
+      "kills": 136,
+      "coins": 162,
+      "diedAtSec": 299
     },
     {
       "char": "sniper",
       "meta": "full",
       "seed": 101,
-      "cleared": false,
-      "level": 15,
-      "kills": 441,
-      "coins": 423,
-      "diedAtSec": 346
+      "cleared": true,
+      "level": 20,
+      "kills": 685,
+      "coins": 958,
+      "diedAtSec": 339
     },
     {
       "char": "sniper",
       "meta": "full",
       "seed": 202,
-      "cleared": true,
-      "level": 21,
-      "kills": 941,
-      "coins": 1534,
-      "diedAtSec": 280
+      "cleared": false,
+      "level": 22,
+      "kills": 918,
+      "coins": 913,
+      "diedAtSec": 261
     },
     {
       "char": "sniper",
       "meta": "full",
       "seed": 303,
-      "cleared": false,
-      "level": 13,
-      "kills": 363,
-      "coins": 407,
-      "diedAtSec": 347
+      "cleared": true,
+      "level": 21,
+      "kills": 824,
+      "coins": 1348,
+      "diedAtSec": 283
     }
   ]
 }

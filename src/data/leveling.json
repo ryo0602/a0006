@@ -1,8 +1,8 @@
 {
   "gemExp": {
-    "gem_small": 2,
-    "gem_medium": 7,
-    "gem_large": 30
+    "gem_small": 2.3,
+    "gem_medium": 8.05,
+    "gem_large": 34.5
   },
   "expBase": 25,
   "expPerLevel": 12,
