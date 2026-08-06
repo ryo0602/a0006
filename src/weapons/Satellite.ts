@@ -69,7 +69,7 @@ export class Satellite extends WeaponBase {
         if (dx * dx + dy * dy >= r * r) continue;
         if (ctx.elapsedSec - e.orbLastHitAt[i] < STATS.hitIntervalSec) continue;
         e.orbLastHitAt[i] = ctx.elapsedSec;
-        ctx.applyDamage(e, STATS.damage * ctx.damageMul * ctx.furyMul);
+        ctx.applyDamage(e, STATS.damage * ctx.damageMul * ctx.rageMul);
       }
     }
   }

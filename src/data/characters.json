@@ -13,6 +13,10 @@
     "weapon": "orb",
     "maxHpAdd": 0.3,
     "moveSpeedAdd": -0.1,
+    "rage": {
+      "damagePerStack": 0.08,
+      "maxStacks": 10
+    },
     "unlock": {
       "type": "clearStage",
       "stage": "stage1"

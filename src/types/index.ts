@@ -147,9 +147,12 @@ export interface PassiveDef {
   /** シールド（Phase 8）: チャージ間隔 = base - cut × Lv */
   shieldIntervalBase?: number;
   shieldIntervalCutPerLevel?: number;
-  /** 闘志（§9）: 被弾1回ごとのオーブ系ダメージ加算と、闘志1レベルあたりの上限 */
-  furyPerHitAdd?: number;
-  furyCapPerLevel?: number;
+}
+
+/** 闘志（§7 tank 固有特性）: 被弾1スタックあたりのオーブ系ダメージ加算と上限スタック数 */
+export interface RageDef {
+  damagePerStack: number;
+  maxStacks: number;
 }
 
 /** パッシブ合算後の補正値。パッシブ取得時にのみ再計算する（毎フレーム計算しない） */
@@ -275,6 +278,8 @@ export interface CharacterDef {
   shieldIntervalSec?: number;
   /** シールドを開始時にチャージ済みで持つ（paladin。§7 唯一の bool 特性） */
   shieldStart?: boolean;
+  /** 闘志（§7 tank 固有）。被弾で育つオーブ系火力。パッシブにしない理由は §9 */
+  rage?: RageDef;
   /** 解放条件。type: 'start' | 'clearStage' | 'coins'
    *  （JSON import は文字列リテラルを widening するため union にしない） */
   unlock: { type: string; stage?: string; cost?: number };
@@ -391,6 +396,8 @@ export interface RunSetup {
   dangerLevel: number;
   /** シールドを開始時にチャージ済みで持つ（paladin。§7 Phase 9） */
   shieldStart: boolean;
+  /** 闘志（§7 tank 固有）。null = なし。開始時から常時有効で、被弾スタック×加算値をオーブ系に乗せる */
+  rage: RageDef | null;
   /** チャレンジ実行時の修飾子（§13 Phase 10）。null = 通常プレイ。危険度は 0 固定 */
   challenge: { id: string; def: ChallengeDef } | null;
 }

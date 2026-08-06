@@ -32,8 +32,8 @@ export interface WeaponContext {
   searchRadius: number;
   /** 攻撃範囲倍率（§9 エリア。Phase 8）。半径・射程を持つ武器が乗算する */
   areaMul: number;
-  /** 闘志（§9）の倍率。オーブ系（オーブ/サテライト）だけが乗算する。他武器は触らない */
-  furyMul: number;
+  /** 闘志（§7 tank 固有）の倍率。オーブ系（オーブ/サテライト）だけが乗算する。他武器は触らない */
+  rageMul: number;
   /** 弾をプールから取得する。上限（§15: 600）到達時は null */
   spawnProjectile(): Projectile | null;
   /** 敵へのダメージ適用の一元窓口（被弾フラッシュ含む） */

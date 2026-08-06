@@ -366,6 +366,7 @@ export class Game {
       unlockedWeapons,
       dangerLevel: this.selectedDanger,
       shieldStart: char.shieldStart ?? false,
+      rage: char.rage ?? null,
       challenge: null,
     };
   }
@@ -382,7 +383,12 @@ function traitText(def: CharacterDef): string {
   if (def.areaAdd !== undefined) parts.push(`範囲${pct(def.areaAdd)}`);
   if (def.shieldIntervalSec !== undefined) parts.push(`シールド持ち`);
   const weaponName = (weaponsData as Record<string, { name: string }>)[def.weapon]?.name ?? def.weapon;
-  return `${parts.join(' / ')}\n初期武器: ${weaponName}`;
+  // 闘志（§7 tank 固有）は1行使って明記する（プレイヤーが特性として認知できるように。数値必須 §16）
+  const rageLine =
+    def.rage !== undefined
+      ? `\n闘志: 被弾ごとオーブ${pct(def.rage.damagePerStack)} (最大${pct(def.rage.damagePerStack * def.rage.maxStacks)})`
+      : '';
+  return `${parts.join(' / ')}${rageLine}\n初期武器: ${weaponName}`;
 }
 
 function pct(v: number): string {
